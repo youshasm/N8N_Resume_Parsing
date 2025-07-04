@@ -1,0 +1,33 @@
+{
+  "database": {
+    "url": "postgresql://user:pass@localhost:5432/imp_db",
+    "redis_url": "redis://localhost:6379"
+  },
+  "file_processing": {
+    "max_file_size_mb": 50,
+    "upload_folder": "./documents/uploads",
+    "temp_folder": "./documents/temp",
+    "processed_folder": "./documents/processed"
+  },
+  "quality_thresholds": {
+    "high": 75,
+    "medium": 50,
+    "low": 25
+  },
+  "ai_apis": {
+    "huggingface_token": "",
+    "google_vision_key": "",
+    "openai_api_key": "",
+    "azure_vision_key": ""
+  },
+  "cost_control": {
+    "daily_budget": 100.0,
+    "monthly_budget": 2000.0,
+    "enable_premium_fallback": true
+  },
+  "n8n": {
+    "base_url": "http://localhost:5678",
+    "api_key": "",
+    "webhook_url": "http://localhost:5678/webhook"
+  }
+}

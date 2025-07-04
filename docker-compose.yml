@@ -1,0 +1,154 @@
+services:
+  # PostgreSQL Database for IMP System
+  imp-postgres:
+    image: postgres:15-alpine
+    container_name: imp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: imp_document_system
+      POSTGRES_USER: imp_admin
+      POSTGRES_PASSWORD: IMP_2025_Secure_Pass_123!
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - imp_postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with Supabase
+    networks:
+      - imp-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imp_admin -d imp_document_system"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # IMP FastAPI Application - Unified (AI + Fallback) with PostgreSQL
+  imp-fastapi:
+    build: .
+    container_name: imp-fastapi
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      - TRANSFORMERS_CACHE=/app/models
+      - HF_HOME=/app/models
+      - DISABLE_AI_ON_STARTUP=true  # Fast startup mode
+      - DATABASE_URL=postgresql://imp_admin:IMP_2025_Secure_Pass_123!@imp-postgres:5432/imp_document_system
+    volumes:
+      - ./documents:/app/documents
+      - ./logs:/app/logs
+      - ./models:/app/models  # Cache AI models
+    ports:
+      - "8000:8000"
+    networks:
+      - imp-network
+    depends_on:
+      imp-postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # n8n Workflow Automation
+  imp-n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: imp-n8n
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=imp-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=imp_document_system
+      - DB_POSTGRESDB_USER=imp_admin
+      - DB_POSTGRESDB_PASSWORD=IMP_2025_Secure_Pass_123!
+      - DB_POSTGRESDB_SCHEMA=n8n
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678
+      - GENERIC_TIMEZONE=Asia/Karachi
+      - N8N_DEFAULT_LOCALE=en
+      - N8N_METRICS=true
+      - N8N_LOG_LEVEL=info
+      - N8N_SECURE_COOKIE=false
+      - N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN=true
+    ports:
+      - "5678:5678"
+    volumes:
+      - imp_n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+      - ./documents:/documents
+    networks:
+      - imp-network
+    depends_on:
+      imp-postgres:
+        condition: service_healthy
+
+  # MinIO for File Storage (S3 Compatible) - Optional
+  imp-minio:
+    image: minio/minio:latest
+    container_name: imp-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: impminiouser
+      MINIO_ROOT_PASSWORD: IMP_MinIO_2025_Secure!
+    volumes:
+      - imp_minio_data:/data
+    ports:
+      - "9002:9000"  # MinIO API (changed to avoid port conflict)
+      - "9003:9001"  # MinIO Console (changed to avoid port conflict)
+    networks:
+      - imp-network
+    profiles:
+      - full  # Only start with --profile full
+
+  # Nginx Reverse Proxy (Optional)
+  imp-nginx:
+    image: nginx:alpine
+    container_name: imp-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "8080:80"    # Changed to avoid port 80 conflict
+      - "8444:443"   # Changed to avoid port 443 conflict
+    networks:
+      - imp-network
+    depends_on:
+      - imp-n8n
+    profiles:
+      - full  # Only start with --profile full
+
+volumes:
+  imp_postgres_data:
+    driver: local
+  imp_n8n_data:
+    driver: local
+  imp_minio_data:
+    driver: local
+
+networks:
+  imp-network:
+    driver: bridge
+    name: imp-network
