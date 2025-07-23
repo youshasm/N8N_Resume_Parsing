@@ -1,6 +1,6 @@
 
 # --- Imports ---
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Body
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Body # type: ignore
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -49,163 +49,72 @@ class ProcessingStats(BaseModel):
     low_quality_manual: int
     processing_errors: int
     ai_processed: Optional[int] = None
-    donut_ocr_processed: Optional[int] = None
-    ai_mode_active: bool = False
 
-class ExtractionResult(BaseModel):
-    field_name: str
-    value: str
-    confidence: float
-    source_region: Optional[dict] = None
+# --- Initialize components ---
 
-class ExtractionResponse(BaseModel):
-    document_id: str
-    extracted_data: Dict[str, Any]
-    extraction_results: List[ExtractionResult]
-    overall_confidence: float
-    processing_mode: str
-    ai_engine_used: Optional[str] = None
+# --- In-memory document metadata store ---
+DOCUMENT_STORE: Dict[str, dict] = {}
 
-# --- Redis Client Stub ---
+# --- Minimal stubs for RedisClientStub and DocumentProcessorStub if not defined ---
 class RedisClientStub:
     def connect(self):
-        return False
-    
+        return True
     def is_connected(self):
-        return False
-    
+        return True
     def get_cached_document(self, *args, **kwargs):
         return None
-    
     def cache_document_metadata(self, *args, **kwargs):
         pass
-    
     def add_to_queue(self, *args, **kwargs):
         pass
-    
     def increment_counter(self, *args, **kwargs):
         pass
-    
     def get_all_queue_lengths(self):
-        return {"high_priority": 0, "medium_priority": 0, "human_review": 0}
-    
+        return {}
     def get_processing_stats(self):
-        return {"total_processed": 0, "cache_hits": 0, "queue_operations": 0}
-    
+        return {}
     def get_redis_info(self):
-        return {"connected": False, "mode": "stub"}
-    
+        return {}
     def get_queue_length(self, queue_name: str):
         return 0
-    
     def get_from_queue(self, queue_name: str):
         return None
-    
     def close(self):
         pass
-    
-    class RedisClientInner:
-        @staticmethod
-        def delete(*args, **kwargs):
-            return 0
-    
     @property
     def redis_client(self):
-        return self.RedisClientInner()
-    
-    CACHE_PREFIXES = {'document': 'doc:', 'quality': 'qual:'}
+        class Dummy:
+            def delete(self, *args, **kwargs):
+                return 1
+        return Dummy()
+    CACHE_PREFIXES = {'document': '', 'quality': ''}
 
-# --- Document Processor Stub ---
 class DocumentProcessorStub:
-    def get_processing_stats(self):
-        return {
-            'total_processed': 0,
-            'high_quality_auto': 0,
-            'medium_quality_enhanced': 0,
-            'low_quality_manual': 0,
-            'processing_errors': 0,
-            'donut_ocr_processed': 0
-        }
-    
     def process_document(self, file_path, original_filename=None):
-        # Determine document type based on filename extension
-        doc_type = "unknown"
-        if original_filename:
-            fname = original_filename.lower()
-            if fname.endswith('.pdf'):
-                doc_type = 'pdf'
-            elif fname.endswith('.docx') or fname.endswith('.doc'):
-                doc_type = 'docx'
-            elif fname.endswith('.jpg') or fname.endswith('.jpeg') or fname.endswith('.png'):
-                doc_type = 'image'
-        
-        class ProcessingResult:
-            def __init__(self):
-                self.id = f"doc-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-                self.original_filename = original_filename or 'unknown'
-                self.quality_metrics = type('QualityMetrics', (), {'overall_score': 0.95})()
-                self.processing_tier = ProcessingTier.HIGH_QUALITY
-                self.document_type = type('DocumentType', (), {'value': doc_type})()
-                self.status = type('Status', (), {'value': 'completed'})()
-                self.processing_cost = 0.05
-                self.ocr_engine = 'tesseract-stub'
-                self.extracted_fields_count = 5
-                self.confidence = 0.95
-        
-        return ProcessingResult()
-    
-    def extract_structured_data(self, file_path, extract_fields, original_filename=None):
-        document_id = f"extract-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        
-        # Simulate extracted data based on requested fields
-        extracted_data = {}
-        extraction_results = []
-        
-        for field in extract_fields:
-            if field == "name":
-                extracted_data[field] = "John Doe"
-                extraction_results.append(ExtractionResult(
-                    field_name=field,
-                    value="John Doe",
-                    confidence=0.95,
-                    source_region={"x": 100, "y": 200, "width": 150, "height": 25}
-                ))
-            elif field == "email":
-                extracted_data[field] = "john.doe@example.com"
-                extraction_results.append(ExtractionResult(
-                    field_name=field,
-                    value="john.doe@example.com",
-                    confidence=0.92,
-                    source_region={"x": 100, "y": 250, "width": 200, "height": 25}
-                ))
-            elif field == "phone":
-                extracted_data[field] = "+1-555-0123"
-                extraction_results.append(ExtractionResult(
-                    field_name=field,
-                    value="+1-555-0123",
-                    confidence=0.88,
-                    source_region={"x": 100, "y": 300, "width": 120, "height": 25}
-                ))
-            elif field == "experience":
-                extracted_data[field] = "5 years"
-                extraction_results.append(ExtractionResult(
-                    field_name=field,
-                    value="5 years",
-                    confidence=0.85,
-                    source_region={"x": 100, "y": 350, "width": 80, "height": 25}
-                ))
-        
-        return {
-            'document_id': document_id,
-            'extracted_data': extracted_data,
-            'extraction_results': extraction_results,
-            'overall_confidence': sum(r.confidence for r in extraction_results) / len(extraction_results) if extraction_results else 0.0
-        }
-    
+        import uuid
+        class Result:
+            def __init__(self, original_filename=None):
+                self.id = str(uuid.uuid4())
+                self.original_filename = original_filename if original_filename is not None else 'dummy.pdf'
+                class Quality:
+                    overall_score = 1.0
+                self.quality_metrics = Quality()
+                class Tier:
+                    value = 'high_quality'
+                self.processing_tier = Tier()
+                class Status:
+                    value = 'completed'
+                self.status = Status()
+                self.processing_cost = 0.0
+                self.ocr_engine = 'none'
+                self.extracted_fields_count = 0
+                self.confidence = 1.0
+        return Result(original_filename)
+    def get_processing_stats(self):
+        return {}
     def cleanup_resources(self):
         pass
 
-# --- Initialize components ---
 redis_client = RedisClientStub()
 document_processor = DocumentProcessorStub()
 
@@ -375,28 +284,71 @@ async def upload(file: UploadFile = File(...)):
             logger.info(f"📋 Returning cached result for {received_filename}")
             return DocumentResponse(**cached_result)
 
+
         # Save uploaded file
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(received_filename)[1]) as temp_file:
             shutil.copyfileobj(file.file, temp_file)
             temp_path = temp_file.name
 
+        # --- Conversion logic ---
+        doc_type = "unknown"
+        converted_path = temp_path
+        converted_docx_path = None
+        output_pdf_path = None
         try:
-            # Determine document type based on filename extension
-            doc_type = "unknown"
-            if received_filename:
-                fname = received_filename.lower()
-                if fname.endswith('.pdf'):
-                    doc_type = 'pdf'
-                elif fname.endswith('.docx') or fname.endswith('.doc'):
-                    doc_type = 'docx'
-                elif fname.endswith('.jpg') or fname.endswith('.jpeg') or fname.endswith('.png'):
-                    doc_type = 'image'
+            fname = received_filename.lower()
+            if fname.endswith('.pdf'):
+                doc_type = 'pdf'
+            elif fname.endswith('.docx'):
+                doc_type = 'docx'
+                # Convert DOCX to PDF
+                try:
+                    from docx2pdf import convert as docx2pdf_convert
+                    pdf_path = os.path.splitext(temp_path)[0] + ".pdf"
+                    docx2pdf_convert(temp_path, pdf_path)
+                    output_pdf_path = pdf_path
+                    converted_path = output_pdf_path
+                    doc_type = 'pdf'  # After conversion
+                    logger.info(f"DOCX converted to PDF: {pdf_path}")
+                except Exception as e:
+                    logger.error(f"DOCX to PDF conversion failed: {e}")
+                    raise HTTPException(status_code=500, detail="DOCX to PDF conversion failed")
+            elif fname.endswith('.doc'):
+                doc_type = 'doc'
+                # Convert DOC to DOCX using LibreOffice (soffice)
+                try:
+                    import subprocess
+                    docx_path = os.path.splitext(temp_path)[0] + ".docx"
+                    subprocess.run([
+                        "soffice", "--headless", "--convert-to", "docx", temp_path, "--outdir", os.path.dirname(temp_path)
+                    ], check=True)
+                    converted_docx_path = docx_path
+                    logger.info(f"DOC converted to DOCX: {docx_path}")
+                except Exception as e:
+                    logger.error(f"DOC to DOCX conversion failed: {e}")
+                    raise HTTPException(status_code=500, detail="DOC to DOCX conversion failed")
+                # Now convert DOCX to PDF
+                try:
+                    from docx2pdf import convert as docx2pdf_convert
+                    pdf_path = os.path.splitext(docx_path)[0] + ".pdf"
+                    docx2pdf_convert(docx_path, pdf_path)
+                    output_pdf_path = pdf_path
+                    converted_path = output_pdf_path
+                    doc_type = 'pdf'  # After conversion
+                    logger.info(f"DOCX converted to PDF: {pdf_path}")
+                except Exception as e:
+                    logger.error(f"DOCX to PDF conversion failed: {e}")
+                    raise HTTPException(status_code=500, detail="DOCX to PDF conversion failed")
+            elif fname.endswith('.jpg') or fname.endswith('.jpeg') or fname.endswith('.png'):
+                doc_type = 'image'
+            else:
+                doc_type = 'unknown'
 
             logger.info(f"Type detection used filename: '{received_filename}', detected type: '{doc_type}'")
 
-            # Process document with processor
+            # Process document with processor (use converted_path)
             result = document_processor.process_document(
-                temp_path, 
+                converted_path,
                 original_filename=received_filename
             )
 
@@ -414,11 +366,15 @@ async def upload(file: UploadFile = File(...)):
                 "ai_mode": ai_mode,
                 "ocr_engine": result.ocr_engine,
                 "extracted_fields_count": result.extracted_fields_count,
-                "confidence": result.confidence
+                "confidence": result.confidence,
+                "converted_docx": os.path.basename(converted_docx_path) if converted_docx_path else None,
+                "converted_pdf": os.path.basename(output_pdf_path) if output_pdf_path else None
             }
 
             # Cache successful results in memory (if available)
             redis_client.cache_document_metadata(file_hash, response_data, ttl=3600)
+            # Store metadata in DOCUMENT_STORE for retrieval
+            DOCUMENT_STORE[result.id] = response_data.copy()
 
             # Add to processing queue based on quality
             queue_data = {
@@ -452,69 +408,8 @@ async def upload(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Upload processing failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
-
-@app.post("/api/documents/extract", response_model=ExtractionResponse)
-async def extract_document_data(
-    file: UploadFile = File(...),
-    extract_fields: List[str] = Query(["name", "email", "phone", "experience"], description="Fields to extract")
-):
-    """ data extraction endpoint"""
-    try:
-        logger.info(f"🔍 Extracting data from: {file.filename} (AI: {ai_mode})")
-        
-        # Validate file
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="Filename is required")
-        
-        # Save uploaded file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
-            shutil.copyfileobj(file.file, temp_file)
-            temp_path = temp_file.name
-        
-        try:
-            # Process with extraction
-            if ai_mode and hasattr(document_processor, 'extract_structured_data'):
-                # AI-powered extraction
-                extraction_result = document_processor.extract_structured_data(
-                    temp_path, 
-                    extract_fields,
-                    original_filename=file.filename
-                )
-                processing_mode = "AI-Powered Extraction"
-                ai_engine = "donut_transformer"
-            else:
-                # Basic processing fallback
-                result = document_processor.process_document(temp_path, original_filename=file.filename)
-                extraction_result = {
-                    "extracted_data": {"message": "Basic processing mode - limited extraction"},
-                    "extraction_results": [],
-                    "overall_confidence": 0.6,
-                    "document_id": result.id
-                }
-                processing_mode = "Basic Processing"
-                ai_engine = None
-            
-            return ExtractionResponse(
-                document_id=extraction_result["document_id"],
-                extracted_data=extraction_result["extracted_data"],
-                extraction_results=extraction_result.get("extraction_results", []),
-                overall_confidence=extraction_result.get("overall_confidence", 0.6),
-                processing_mode=processing_mode,
-                ai_engine_used=ai_engine
-            )
-            
-        finally:
-            # Cleanup temp file
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-                
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Extraction failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+        logger.error(f"Upload failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @app.get("/api/documents/{document_id}/status")
 async def get_document_status(document_id: str):
@@ -531,42 +426,21 @@ async def get_document_status(document_id: str):
         logger.error(f"❌ Status check failed: {e}")
         raise HTTPException(status_code=404, detail=f"Document not found: {document_id}")
 
+
 @app.get("/api/documents/{document_id}")
 async def get_document(document_id: str):
-    """Get document details by ID (simulated)"""
+    """Get document details by ID (real, from in-memory store)"""
     try:
-        # Determine document_type based on file extension
-        original_filename = "example.pdf"
-        fname = original_filename.lower()
-        if fname.endswith('.pdf'):
-            doc_type = 'pdf'
-        elif fname.endswith('.docx') or fname.endswith('.doc'):
-            doc_type = 'docx'
-        elif fname.endswith('.jpg') or fname.endswith('.jpeg') or fname.endswith('.png'):
-            doc_type = 'image'
-        else:
-            doc_type = 'unknown'
-
-        document_data = {
-            "document_id": document_id,
-            "original_filename": original_filename,
-            "quality_score": 0.95,
-            "processing_tier": "high_quality",
-            "document_type": doc_type,
-            "status": "completed",
-            "processing_cost": 0.05,
-            "requires_human_review": False,
-            "processing_time_seconds": 12.34,
-            "ocr_engine": "tesseract",
-            "extracted_fields_count": 10,
-            "confidence": 0.98,
-            "ai_mode": True
-        }
-
-        return DocumentResponse(**document_data)
-        
+        logger.info(f"Fetching document metadata for ID: {document_id}")
+        logger.info(f"Current DOCUMENT_STORE keys: {list(DOCUMENT_STORE.keys())}")
+        doc = DOCUMENT_STORE.get(document_id)
+        if not doc:
+            logger.warning(f"Document ID {document_id} not found in DOCUMENT_STORE.")
+            raise HTTPException(status_code=404, detail=f"Document not found: {document_id}")
+        logger.info(f"Found document metadata: {doc}")
+        return DocumentResponse(**doc)
     except Exception as e:
-        logger.error(f"❌ Document retrieval failed: {e}")
+        logger.error(f"❌ Document retrieval failed for ID {document_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Document retrieval failed: {str(e)}")
 
 @app.get("/api/processing/stats", response_model=ProcessingStats)
@@ -734,7 +608,7 @@ async def clear_document_cache(document_id: str):
 
 # Run the application
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  #type:ignore 
     
     # Determine port and mode
     port = int(os.getenv("PORT", 8000))

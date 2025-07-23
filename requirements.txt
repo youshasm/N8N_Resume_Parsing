@@ -2,6 +2,8 @@
 docx2txt
 # For PDF processing
 pymupdf
+# For DOCX to PDF conversion
+docx2pdf
 # IMP Document Processing System - Python Dependencies
 # Core FastAPI and web framework
 fastapi==0.104.1

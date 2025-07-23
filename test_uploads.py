@@ -16,21 +16,48 @@ def get_content_type(filename):
     else:
         return 'application/octet-stream'
 
-def test_uploads(folder_path, webhook_url):
+def test_uploads(folder_path, upload_url, get_url_template):
+    total = 0
+    upload_success = 0
+    get_success = 0
     for root, _, files in os.walk(folder_path):
         for file in files:
+            total += 1
             file_path = os.path.join(root, file)
             content_type = get_content_type(file)
+            print("-"*60)
+            print(f"Testing {file_path}")
             with open(file_path, 'rb') as f:
                 files_data = {'file': (file, f, content_type)}
-                response = requests.post(webhook_url, files=files_data)
-                print(f"Testing {file_path} -> Status: {response.status_code}")
+                response = requests.post(upload_url, files=files_data)
+                print(f"  Upload Status: {response.status_code}")
                 try:
-                    print(response.json())
+                    resp_json = response.json()
+                    print(f"  Upload Response: {resp_json}")
+                    document_id = resp_json.get('document_id')
+                    if response.status_code == 200 and document_id:
+                        upload_success += 1
+                        get_url = get_url_template.format(document_id=document_id)
+                        get_resp = requests.get(get_url)
+                        print(f"  GET {get_url} -> Status: {get_resp.status_code}")
+                        try:
+                            get_json = get_resp.json()
+                            print(f"  GET Response: {get_json}")
+                            if get_resp.status_code == 200:
+                                get_success += 1
+                        except Exception:
+                            print(f"  GET Response (raw): {get_resp.text}")
+                    else:
+                        print("  No document_id returned from upload response.")
                 except Exception:
-                    print(response.text)
+                    print(f"  Upload Response (raw): {response.text}")
+    print("\nSummary:")
+    print(f"  Total files tested: {total}")
+    print(f"  Uploads succeeded: {upload_success}")
+    print(f"  GETs succeeded: {get_success}")
 
 if __name__ == "__main__":
     uploads_folder = os.path.join('documents', 'uploads')
-    webhook = 'http://localhost:5678/webhook/primary'
-    test_uploads(uploads_folder, webhook)
+    upload_url = 'http://localhost:8000/api/documents/upload'
+    get_url_template = 'http://localhost:8000/api/documents/{document_id}'
+    test_uploads(uploads_folder, upload_url, get_url_template)
