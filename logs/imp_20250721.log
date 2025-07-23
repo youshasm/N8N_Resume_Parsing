@@ -1,0 +1,121 @@
+2025-07-21 05:33:23,654 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 05:33:27,681 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 05:33:27,681 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 05:33:27,682 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 05:33:27,682 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 05:33:30,155 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 05:33:30,217 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 05:33:30,218 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 05:33:30,219 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 05:33:30,221 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 05:33:30,229 - main - INFO - 📁 Storage directories initialized
+2025-07-21 06:07:03,571 - main - INFO - � In-memory storage connections closed
+2025-07-21 06:07:03,884 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 06:11:16,660 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 06:11:17,228 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 06:11:17,229 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 06:11:17,229 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 06:11:17,230 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 06:11:17,866 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 06:11:17,914 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 06:11:17,914 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 06:11:17,914 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 06:11:17,916 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 06:11:17,924 - main - INFO - 📁 Storage directories initialized
+2025-07-21 07:46:21,788 - main - INFO - � In-memory storage connections closed
+2025-07-21 07:46:22,266 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 07:48:58,935 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 07:49:00,267 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 07:49:00,268 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 07:49:00,268 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 07:49:00,269 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 07:49:01,000 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 07:49:01,044 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 07:49:01,045 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 07:49:01,045 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 07:49:01,047 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 07:49:01,055 - main - INFO - 📁 Storage directories initialized
+2025-07-21 07:58:45,036 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 07:58:45,037 - src.core.document_processor - INFO - Starting document processing: pdf.pdf
+2025-07-21 07:58:45,856 - src.core.file_handler - INFO - File saved successfully: f113134f_pdf.pdf
+2025-07-21 07:58:46,391 - src.quality.quality_assessor - INFO - Quality assessment completed for document cc73f41c-2fbf-4275-b114-d4eefcf10d4b | Extra: {'score': 30.0, 'tier': 'low_quality'}
+2025-07-21 07:58:46,423 - src.core.document_processor - INFO - Document processing completed: cc73f41c-2fbf-4275-b114-d4eefcf10d4b | Extra: {'quality_score': 30.0, 'processing_tier': 'low_quality', 'document_type': 'unknown'}
+2025-07-21 07:58:46,424 - main - INFO - ✅ Document processed successfully: cc73f41c-2fbf-4275-b114-d4eefcf10d4b
+2025-07-21 08:00:14,149 - main - INFO - � In-memory storage connections closed
+2025-07-21 08:00:14,153 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 08:00:34,669 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 08:00:34,792 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 08:00:34,792 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 08:00:34,793 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 08:00:34,793 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 08:00:34,931 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 08:00:34,988 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 08:00:34,989 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 08:00:34,989 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 08:00:34,991 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 08:00:34,996 - main - INFO - 📁 Storage directories initialized
+2025-07-21 08:00:45,943 - main - INFO - � In-memory storage connections closed
+2025-07-21 08:00:45,943 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 08:01:22,193 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 08:01:22,296 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 08:01:22,297 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 08:01:22,298 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 08:01:22,298 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 08:01:22,353 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 08:01:22,433 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 08:01:22,434 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 08:01:22,435 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 08:01:22,437 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 08:01:22,446 - main - INFO - 📁 Storage directories initialized
+2025-07-21 08:03:17,786 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 08:03:17,811 - src.core.document_processor - INFO - Starting document processing: pdf.pdf
+2025-07-21 08:03:17,900 - src.core.file_handler - INFO - File saved successfully: e0c2f5ea_pdf.pdf
+2025-07-21 08:03:18,091 - src.quality.quality_assessor - INFO - Quality assessment completed for document 70d46592-fd9a-4cb7-9e5e-40cea7ca0eac | Extra: {'score': 30.0, 'tier': 'low_quality'}
+2025-07-21 08:03:18,121 - src.core.document_processor - INFO - Document processing completed: 70d46592-fd9a-4cb7-9e5e-40cea7ca0eac | Extra: {'quality_score': 30.0, 'processing_tier': 'low_quality', 'document_type': 'unknown'}
+2025-07-21 08:03:18,121 - main - INFO - ✅ Document processed successfully: 70d46592-fd9a-4cb7-9e5e-40cea7ca0eac
+2025-07-21 08:03:20,310 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 08:03:20,311 - main - INFO - 📋 Returning cached result for pdf.pdf
+2025-07-21 08:03:21,420 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 08:03:21,421 - main - INFO - 📋 Returning cached result for pdf.pdf
+2025-07-21 08:03:22,492 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 08:03:22,493 - main - INFO - 📋 Returning cached result for pdf.pdf
+2025-07-21 09:48:36,734 - main - INFO - � In-memory storage connections closed
+2025-07-21 09:48:36,961 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 10:35:34,010 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 10:35:36,521 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 10:35:36,522 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 10:35:36,522 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 10:35:36,523 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 10:35:37,495 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 10:35:37,599 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 10:35:37,600 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 10:35:37,600 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 10:35:37,602 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 10:35:37,721 - main - INFO - 📁 Storage directories initialized
+2025-07-21 10:54:46,553 - main - INFO - 📤 Processing upload: e0c2f5ea_pdf.pdf (AI: False)
+2025-07-21 10:54:46,654 - src.core.document_processor - INFO - Starting document processing: e0c2f5ea_pdf.pdf
+2025-07-21 10:54:50,385 - src.core.file_handler - INFO - File saved successfully: f661ba43_e0c2f5ea_pdf.pdf
+2025-07-21 10:54:51,454 - src.quality.quality_assessor - INFO - Quality assessment completed for document bfb14fc8-d93b-4764-8414-0647b7a23dd6 | Extra: {'score': 30.0, 'tier': 'low_quality'}
+2025-07-21 10:54:51,654 - src.core.document_processor - INFO - Document processing completed: bfb14fc8-d93b-4764-8414-0647b7a23dd6 | Extra: {'quality_score': 30.0, 'processing_tier': 'low_quality', 'document_type': 'unknown'}
+2025-07-21 10:54:51,657 - main - INFO - ✅ Document processed successfully: bfb14fc8-d93b-4764-8414-0647b7a23dd6
+2025-07-21 10:57:31,757 - main - INFO - 📤 Processing upload: pdf.pdf (AI: False)
+2025-07-21 10:57:31,770 - src.core.document_processor - INFO - Starting document processing: pdf.pdf
+2025-07-21 10:57:31,886 - src.core.file_handler - INFO - File saved successfully: f20c3cb2_pdf.pdf
+2025-07-21 10:57:32,284 - src.quality.quality_assessor - INFO - Quality assessment completed for document 3f7b9926-6afc-4613-bf8f-aeecc49210da | Extra: {'score': 30.0, 'tier': 'low_quality'}
+2025-07-21 10:57:32,313 - src.core.document_processor - INFO - Document processing completed: 3f7b9926-6afc-4613-bf8f-aeecc49210da | Extra: {'quality_score': 30.0, 'processing_tier': 'low_quality', 'document_type': 'unknown'}
+2025-07-21 10:57:32,314 - main - INFO - ✅ Document processed successfully: 3f7b9926-6afc-4613-bf8f-aeecc49210da
+2025-07-21 12:04:08,641 - main - INFO - � In-memory storage connections closed
+2025-07-21 12:04:08,828 - main - INFO - 🛑 Application shutdown completed
+2025-07-21 12:06:35,856 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 12:06:41,910 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-21 12:06:41,928 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-21 12:06:41,934 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-21 12:06:41,948 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-21 12:06:47,439 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-21 12:06:47,642 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-21 12:06:47,643 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-21 12:06:47,643 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-21 12:06:47,645 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-21 12:06:47,698 - main - INFO - 📁 Storage directories initialized
+2025-07-21 12:21:17,561 - main - INFO - � In-memory storage connections closed
+2025-07-21 12:21:17,571 - main - INFO - 🛑 Application shutdown completed

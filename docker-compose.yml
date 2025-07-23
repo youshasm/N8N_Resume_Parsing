@@ -28,7 +28,7 @@ services:
       retries: 5
       start_period: 10s
 
-  # IMP FastAPI Application - Unified (AI + Fallback) with PostgreSQL
+  # IMP FastAPI Application - (AI + Fallback) with PostgreSQL
   imp-fastapi:
     build: .
     container_name: imp-fastapi

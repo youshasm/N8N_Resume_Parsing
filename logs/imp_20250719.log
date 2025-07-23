@@ -1,0 +1,39 @@
+2025-07-19 12:06:26,398 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:06:27,111 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-19 12:06:27,111 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-19 12:06:27,112 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-19 12:06:27,112 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-19 12:06:27,935 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:06:28,000 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-19 12:06:28,001 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-19 12:06:28,002 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-19 12:06:28,004 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-19 12:06:28,012 - main - INFO - 📁 Storage directories initialized
+2025-07-19 12:20:45,694 - main - INFO - � In-memory storage connections closed
+2025-07-19 12:20:45,698 - main - INFO - 🛑 Application shutdown completed
+2025-07-19 12:20:56,245 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:20:56,317 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-19 12:20:56,318 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-19 12:20:56,319 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-19 12:20:56,319 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-19 12:20:56,372 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:20:56,407 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-19 12:20:56,408 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-19 12:20:56,408 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-19 12:20:56,411 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-19 12:20:56,419 - main - INFO - 📁 Storage directories initialized
+2025-07-19 12:23:34,792 - main - INFO - � In-memory storage connections closed
+2025-07-19 12:23:34,793 - main - INFO - 🛑 Application shutdown completed
+2025-07-19 12:23:45,665 - __main__ - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:23:45,840 - __main__ - INFO - 🚀 Starting unified IMP Document Processing System
+2025-07-19 12:23:45,840 - __main__ - INFO - 📊 Mode: Basic Processing (Fast Startup)
+2025-07-19 12:23:45,841 - __main__ - INFO - 🌐 Server: http://localhost:8000
+2025-07-19 12:23:45,841 - __main__ - INFO - 📚 API Docs: http://localhost:8000/docs
+2025-07-19 12:23:45,991 - main - INFO - 🚀 AI startup disabled - using basic processor for faster boot
+2025-07-19 12:23:46,055 - main - INFO - 🚀 Starting IMP Document Processing System - Basic Processing (Fast Startup)
+2025-07-19 12:23:46,056 - main - INFO - 📊 AI Mode: Disabled (Fallback)
+2025-07-19 12:23:46,057 - main - INFO - � In-memory storage initialized - Caching and queues enabled
+2025-07-19 12:23:46,059 - main - INFO - ⚙️ Configuration validation completed | Extra: {'database_url_set': True, 'upload_folder_exists': True, 'huggingface_token_set': True, 'quality_thresholds_valid': True, 'budget_limits_valid': True, 'storage_connected': True}
+2025-07-19 12:23:46,068 - main - INFO - 📁 Storage directories initialized
+2025-07-19 12:52:16,504 - main - INFO - � In-memory storage connections closed
+2025-07-19 12:52:16,506 - main - INFO - 🛑 Application shutdown completed

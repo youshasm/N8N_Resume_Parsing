@@ -1,0 +1,128 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-upload",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryBinary",
+        "options": {
+          "binaryData": "={{ true }}"
+        }
+      },
+      "id": "9de66e22-7538-4b24-b963-5bd6eca1b906",
+      "name": "Test Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        272,
+        176
+      ],
+      "webhookId": "test-upload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item;\nif (item.binary && item.binary.data) {\n  const orig = item.binary.data;\n  let mimeType = orig.mimeType;\n  if (!mimeType || mimeType === 'multipart/form-data') {\n    mimeType = 'application/pdf';\n  }\n  item.binary.file = {\n    ...orig,\n    fileName: orig.fileName || orig.name || 'upload.pdf',\n    mimeType\n  };\n  delete item.binary.data;\n}\nreturn [item];"
+      },
+      "id": "072310bf-7d9d-4ac4-b696-34c481ca1cf4",
+      "name": "Set Binary Field Name",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item;\nconst binary = item.binary.file;\nconst boundary = '----n8nBoundary' + Math.random().toString(16).slice(2);\nconst eol = '\\r\\n';\nconst fileName = binary.fileName || 'upload.pdf';\nconst mimeType = binary.mimeType || 'application/pdf';\nconst fileBuffer = Buffer.from(binary.data, 'base64');\nlet body = Buffer.concat([\n  Buffer.from(`--${boundary}${eol}`),\n  Buffer.from(`Content-Disposition: form-data; name=\"file\"; filename=\"${fileName}\"${eol}`),\n  Buffer.from(`Content-Type: ${mimeType}${eol}${eol}`),\n  fileBuffer,\n  Buffer.from(`${eol}--${boundary}--${eol}`)\n]);\nreturn [{ json: { boundary, rawBody: body } }];"
+      },
+      "id": "5c331863-ee21-4993-98dd-58e5bdec8001",
+      "name": "Build Multipart Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://imp-fastapi:8000/api/documents/upload",
+        "options": {}
+      },
+      "id": "61dfd4fe-3411-42b6-951d-6a0e123c9899",
+      "name": "Upload to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        944,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const mimeType = $json.mimeType || ($json.binary && $json.binary.file && $json.binary.file.mimeType) || '';\nlet classification = 'unknown';\nif (mimeType.includes('pdf')) {\n  classification = 'pdf';\n} else if (mimeType.includes('officedocument.wordprocessingml.document') || mimeType.includes('docx')) {\n  classification = 'docx';\n} else if (mimeType.includes('image')) {\n  classification = 'image';\n}\nreturn [{ json: { classification } }];"
+      },
+      "id": "classify-file-type-test",
+      "name": "Classify File Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        176
+      ]
+    }
+  ],
+  "connections": {
+    "Test Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Binary Field Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Binary Field Name": {
+      "main": [
+        [
+          {
+            "node": "Build Multipart Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Multipart Body": {
+      "main": [
+        [
+          {
+            "node": "Upload to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Backend": {
+      "main": [
+        [
+          {
+            "node": "Classify File Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6a43a3bbd7a8cdc4527fdc9e7a353480fdc5f3249bab15191df3e3f7f430aed"
+  }
+}
