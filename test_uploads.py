@@ -34,19 +34,15 @@ def test_uploads(folder_path, upload_url, get_url_template):
                 try:
                     resp_json = response.json()
                     print(f"  Upload Response: {resp_json}")
+                    # Check for DOCX to PDF conversion
+                    if file.lower().endswith('.docx'):
+                        if resp_json.get('converted_pdf'):
+                            print(f"  ✔ DOCX to PDF conversion successful: {resp_json['converted_pdf']}")
+                        else:
+                            print(f"  ✖ DOCX to PDF conversion missing in response!")
                     document_id = resp_json.get('document_id')
                     if response.status_code == 200 and document_id:
                         upload_success += 1
-                        get_url = get_url_template.format(document_id=document_id)
-                        get_resp = requests.get(get_url)
-                        print(f"  GET {get_url} -> Status: {get_resp.status_code}")
-                        try:
-                            get_json = get_resp.json()
-                            print(f"  GET Response: {get_json}")
-                            if get_resp.status_code == 200:
-                                get_success += 1
-                        except Exception:
-                            print(f"  GET Response (raw): {get_resp.text}")
                     else:
                         print("  No document_id returned from upload response.")
                 except Exception:
@@ -54,10 +50,10 @@ def test_uploads(folder_path, upload_url, get_url_template):
     print("\nSummary:")
     print(f"  Total files tested: {total}")
     print(f"  Uploads succeeded: {upload_success}")
-    print(f"  GETs succeeded: {get_success}")
 
 if __name__ == "__main__":
     uploads_folder = os.path.join('documents', 'uploads')
-    upload_url = 'http://localhost:8000/api/documents/upload'
+    # n8n workflow Starting Webhook endpoint (adjust port/path if needed)
+    upload_url = 'http://localhost:5678/webhook/primary'
     get_url_template = 'http://localhost:8000/api/documents/{document_id}'
     test_uploads(uploads_folder, upload_url, get_url_template)
