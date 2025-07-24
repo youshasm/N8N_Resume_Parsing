@@ -9,32 +9,39 @@
           "binaryData": "={{ true }}"
         }
       },
-      "id": "bb7937c4-fae1-48ff-aa00-b8466f11701e",
+      "id": "9720fba4-4445-4ede-8243-9ec955467d18",
       "name": "Starting Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -384,
+        -352,
         272
       ],
       "webhookId": "primary"
     },
-    
     {
       "parameters": {
+        "method": "POST",
         "url": "http://imp-fastapi:8000/api/documents/upload",
-        "options": {},
-        "sendBinaryData": true,
-        "binaryPropertyName": "data",
-        "bodyContentType": "multipart-form-data",
-        "bodyParameters": []
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "f8012bb3-3a08-496d-9c6c-a05b8bb085b8",
+      "id": "e244d301-3cd9-4f93-8aff-d33cb6525643",
       "name": "Upload to Backend",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        128,
+        160,
         272
       ]
     },
@@ -43,12 +50,12 @@
         "url": "http://imp-fastapi:8000/api/documents/{{ $json.document_id }}",
         "options": {}
       },
-      "id": "bb3caf5a-5748-4444-be63-8768dae136f5",
+      "id": "85d11f9f-51b3-4193-afc2-a1c4068af3a9",
       "name": "Get Document Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        288,
+        320,
         272
       ]
     },
@@ -56,12 +63,12 @@
       "parameters": {
         "jsCode": "// Enhanced classification logic\nconst items = $input.all();\nconst processedItems = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  // Extract document information\n  const documentId = data.document_id;\n  const documentType = data.document_type || 'unknown';\n  const originalFilename = data.original_filename || '';\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  \n  // Classify based on document type and characteristics\n  let classificationFactors = [];\n  let processingRequirements = [];\n  \n  // Document type analysis\n  if (documentType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (documentType === 'docx' || documentType === 'doc') {\n    classificationFactors.push('Word document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (documentType === 'image' || ['jpg', 'jpeg', 'png'].includes(documentType)) {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  }\n  \n  // Quality-based classification\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  \n  // Filename analysis for additional context\n  const filename = originalFilename.toLowerCase();\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n  } else if (filename.includes('application') || filename.includes('form')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n  }\n  \n  // Determine sub-type based on classification\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  \n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: documentType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: originalFilename,\n      quality_score: qualityScore\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "64e2e858-11ea-43b8-a1e3-472dc010ee23",
+      "id": "7ff605c5-b7f1-46a0-a5a3-efec14799cfb",
       "name": "Classification Engine",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        528,
+        576,
         272
       ]
     },
@@ -108,12 +115,12 @@
         },
         "options": {}
       },
-      "id": "6954f1db-84de-4d57-999e-59311eb55ecd",
+      "id": "18f7778d-64f6-44c6-b4f7-f330a27efb2f",
       "name": "Store Classification",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        736,
+        784,
         272
       ]
     },
@@ -121,12 +128,12 @@
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop().toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop().toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown'\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "5373b125-651b-485a-bd21-88f871fe597c",
+      "id": "c60dace6-c4bf-468e-a990-845524cfa65a",
       "name": "Classify File Type",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
+        1008,
         272
       ]
     },
@@ -135,12 +142,12 @@
         "mode": "expression",
         "numberOutputs": 2
       },
-      "id": "84ad5ab0-98eb-43c2-bd37-fd2675f694a6",
+      "id": "a843d114-c10f-43a4-97d6-9c8fd70d731d",
       "name": "Switch",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1232,
+        1280,
         272
       ]
     },
@@ -151,11 +158,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -432,
+        -400,
         80
       ],
       "typeVersion": 1,
-      "id": "fd0af180-6ae3-43e3-97ff-a460e9b2f41d",
+      "id": "c056f85e-f59b-4981-804c-20af4556f82c",
       "name": "Sticky Note"
     },
     {
@@ -166,11 +173,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -192,
+        -160,
         80
       ],
       "typeVersion": 1,
-      "id": "7118711c-91d4-4151-8ef8-877d9d7d7e2c",
+      "id": "c1de39f3-5540-41d1-84dd-ad2228a9d135",
       "name": "Sticky Note1"
     },
     {
@@ -182,11 +189,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        48,
+        80,
         80
       ],
       "typeVersion": 1,
-      "id": "df59dfba-77f0-4297-a4af-d24cada35454",
+      "id": "d760ca08-dc27-4362-a5ce-1347b56b0a78",
       "name": "Sticky Note2"
     },
     {
@@ -198,11 +205,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        464,
+        496,
         80
       ],
       "typeVersion": 1,
-      "id": "bb570629-fa3c-4586-8f42-1879a5901d62",
+      "id": "e07d5c31-9eb2-4024-a15f-d07e878352be",
       "name": "Sticky Note3"
     },
     {
@@ -213,11 +220,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1168,
+        1216,
         80
       ],
       "typeVersion": 1,
-      "id": "76d049ae-7388-4f27-a279-5848d06b0c67",
+      "id": "ebd27798-0332-4efd-ad65-f3c6ff6281ea",
       "name": "Sticky Note4"
     },
     {
@@ -235,27 +242,14 @@
         },
         "options": {}
       },
-      "id": "24d0180b-7ae8-4b2d-88a3-d6ffe2af486f",
+      "id": "8aedf06c-1b63-4d5c-8426-96b909f55dc8",
       "name": "Convert to PDF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        1440,
+        1488,
         160
       ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1664,
-        288
-      ],
-      "id": "b0b0db75-4b80-4a00-aadc-ad05c03cb66b",
-      "name": "Process PDF"
     },
     {
       "parameters": {
@@ -266,11 +260,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1392,
+        1440,
         80
       ],
       "typeVersion": 1,
-      "id": "ee09f190-32b0-4110-b10d-5b8ddafe8624",
+      "id": "7434a342-c884-4245-91f2-f88d71cacc76",
       "name": "Sticky Note5"
     }
   ],
@@ -349,41 +343,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Process PDF",
-            "type": "main",
-            "index": 0
-          }
         ]
-      ]
-    },
-    "Convert to PDF": {
-      "main": [
-        [
-          {
-            "node": "Process PDF",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process PDF": {
-      "main": [
-        [
-          {
-            "node": "PDF JSON Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "PDF JSON Output": {
-      "main": [
-        []
       ]
     }
   },
