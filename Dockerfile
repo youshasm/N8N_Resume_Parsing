@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
+    libreoffice \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies FIRST (for better caching)

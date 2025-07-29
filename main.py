@@ -1,6 +1,7 @@
 
 # --- Imports ---
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Body # type: ignore
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Body, BackgroundTasks # type: ignore
+from fastapi.responses import FileResponse,JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -9,6 +10,9 @@ import shutil
 import tempfile
 from datetime import datetime
 import logging
+import subprocess
+from pdf2image import convert_from_path
+import uuid
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -122,9 +126,9 @@ document_processor = DocumentProcessorStub()
 processor_version = ""
 ai_mode = True
 config = {
-    "UPLOAD_FOLDER": "./uploads",
-    "TEMP_FOLDER": "./temp",
-    "PROCESSED_FOLDER": "./processed",
+    "UPLOAD_FOLDER": "./documents/uploads",
+    "TEMP_FOLDER": "./documents/temp",
+    "PROCESSED_FOLDER": "./documents/processed",
     "QUALITY_THRESHOLD_HIGH": 0.8,
     "QUALITY_THRESHOLD_MEDIUM": 0.5,
     "QUALITY_THRESHOLD_LOW": 0.2,
@@ -258,24 +262,67 @@ async def extraction_trigger(payload: ExtractionTriggerRequest):
     }
 
 @app.post("/api/documents/upload")
-async def upload(file: UploadFile = File(...)):
-    """Upload and process document"""
+async def upload(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    """Upload and process document with enhanced filename handling"""
     try:
-        logger.info(f"📤 Processing upload: filename received = '{file.filename}' (AI: {ai_mode})")
+        # Enhanced filename extraction
+        received_filename = file.filename
+        if not received_filename:
+            # Create a temporary filename based on content type
+            content_type = file.content_type or 'application/octet-stream'
+            if 'pdf' in content_type:
+                received_filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            elif 'image' in content_type:
+                received_filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            else:
+                received_filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.bin"
+        
+        logger.info(f"📤 Processing upload: filename='{received_filename}', content_type='{file.content_type}'")
         
         # Validate file
-        received_filename = file.filename
-        logger.info(f"Received filename for type detection: '{received_filename}'")
         if not received_filename:
             raise HTTPException(status_code=400, detail="Filename is required")
 
         # Check file size
         file_content = await file.read()
+        file_size_mb = len(file_content) / (1024 * 1024)
         if len(file_content) > config["MAX_FILE_SIZE_MB"] * 1024 * 1024:
-            raise HTTPException(status_code=413, detail="File too large")
+            raise HTTPException(status_code=413, detail=f"File too large: {file_size_mb:.2f}MB (max: {config['MAX_FILE_SIZE_MB']}MB)")
 
         # Reset file pointer
         await file.seek(0)
+
+        # Enhanced file type detection
+        def detect_document_type(filename: str, content_type: str = None) -> str:
+            """Enhanced document type detection"""
+            if not filename:
+                if content_type:
+                    if 'pdf' in content_type.lower():
+                        return 'pdf'
+                    elif 'image' in content_type.lower():
+                        return 'image'
+                return 'unknown'
+            
+            fname_lower = filename.lower()
+            if fname_lower.endswith('.pdf'):
+                return 'pdf'
+            elif fname_lower.endswith('.docx'):
+                return 'docx'
+            elif fname_lower.endswith('.doc'):
+                return 'doc'
+            elif fname_lower.endswith(('.jpg', '.jpeg')):
+                return 'jpg'
+            elif fname_lower.endswith('.png'):
+                return 'png'
+            elif content_type:
+                if 'pdf' in content_type.lower():
+                    return 'pdf'
+                elif 'image' in content_type.lower():
+                    return 'image'
+                elif 'word' in content_type.lower():
+                    return 'docx' if 'openxml' in content_type.lower() else 'doc'
+            
+            return 'unknown'
 
         # Check memory cache first (if available)
         file_hash = f"{received_filename}_{len(file_content)}_{datetime.now().strftime('%Y%m%d')}"
@@ -284,67 +331,73 @@ async def upload(file: UploadFile = File(...)):
             logger.info(f"📋 Returning cached result for {received_filename}")
             return DocumentResponse(**cached_result)
 
-
         # Save uploaded file
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(received_filename)[1]) as temp_file:
             shutil.copyfileobj(file.file, temp_file)
             temp_path = temp_file.name
 
-        # --- Conversion logic ---
-        doc_type = "unknown"
+        # Enhanced document type detection
+        doc_type = detect_document_type(received_filename, file.content_type)
         converted_path = temp_path
         converted_docx_path = None
         output_pdf_path = None
         try:
-            fname = received_filename.lower()
-            if fname.endswith('.pdf'):
-                doc_type = 'pdf'
-            elif fname.endswith('.docx'):
-                doc_type = 'docx'
-                # Convert DOCX to PDF
+            # Conversion logic (same as before but with better error handling)
+            if doc_type == 'docx':
+                # Convert DOCX to PDF using LibreOffice (soffice) for Linux compatibility
                 try:
-                    from docx2pdf import convert as docx2pdf_convert
                     pdf_path = os.path.splitext(temp_path)[0] + ".pdf"
-                    docx2pdf_convert(temp_path, pdf_path)
-                    output_pdf_path = pdf_path
-                    converted_path = output_pdf_path
-                    doc_type = 'pdf'  # After conversion
-                    logger.info(f"DOCX converted to PDF: {pdf_path}")
+                    result = subprocess.run([
+                        "soffice", "--headless", "--convert-to", "pdf", temp_path, "--outdir", os.path.dirname(temp_path)
+                    ], check=True, capture_output=True, text=True)
+                    if os.path.exists(pdf_path):
+                        output_pdf_path = pdf_path
+                        converted_path = output_pdf_path
+                        doc_type = 'pdf'  # After conversion
+                        logger.info(f"✅ DOCX converted to PDF using LibreOffice: {pdf_path}")
+                    else:
+                        logger.error("DOCX to PDF conversion failed - output file not found")
+                        logger.warning("Continuing with original DOCX file")
                 except Exception as e:
-                    logger.error(f"DOCX to PDF conversion failed: {e}")
-                    raise HTTPException(status_code=500, detail="DOCX to PDF conversion failed")
-            elif fname.endswith('.doc'):
-                doc_type = 'doc'
-                # Convert DOC to DOCX using LibreOffice (soffice)
+                    logger.error(f"❌ DOCX to PDF conversion failed: {e}")
+                    logger.warning("Continuing with original DOCX file")
+            
+            elif doc_type == 'doc':
+                # Convert DOC to DOCX using LibreOffice (soffice), then DOCX to PDF using LibreOffice
                 try:
-                    import subprocess
                     docx_path = os.path.splitext(temp_path)[0] + ".docx"
-                    subprocess.run([
+                    result = subprocess.run([
                         "soffice", "--headless", "--convert-to", "docx", temp_path, "--outdir", os.path.dirname(temp_path)
-                    ], check=True)
-                    converted_docx_path = docx_path
-                    logger.info(f"DOC converted to DOCX: {docx_path}")
+                    ], check=True, capture_output=True, text=True)
+                    if os.path.exists(docx_path):
+                        converted_docx_path = docx_path
+                        logger.info(f"✅ DOC converted to DOCX: {docx_path}")
+                        # Now convert DOCX to PDF using LibreOffice
+                        try:
+                            pdf_path = os.path.splitext(docx_path)[0] + ".pdf"
+                            result_pdf = subprocess.run([
+                                "soffice", "--headless", "--convert-to", "pdf", docx_path, "--outdir", os.path.dirname(docx_path)
+                            ], check=True, capture_output=True, text=True)
+                            if os.path.exists(pdf_path):
+                                output_pdf_path = pdf_path
+                                converted_path = output_pdf_path
+                                doc_type = 'pdf'  # After conversion
+                                logger.info(f"✅ DOCX converted to PDF using LibreOffice: {pdf_path}")
+                            else:
+                                logger.error("DOCX to PDF conversion failed - output file not found")
+                                converted_path = docx_path
+                                doc_type = 'docx'
+                        except Exception as e:
+                            logger.error(f"❌ DOCX to PDF conversion failed: {e}")
+                            converted_path = docx_path
+                            doc_type = 'docx'
+                    else:
+                        logger.error("DOC to DOCX conversion failed - output file not found")
                 except Exception as e:
-                    logger.error(f"DOC to DOCX conversion failed: {e}")
-                    raise HTTPException(status_code=500, detail="DOC to DOCX conversion failed")
-                # Now convert DOCX to PDF
-                try:
-                    from docx2pdf import convert as docx2pdf_convert
-                    pdf_path = os.path.splitext(docx_path)[0] + ".pdf"
-                    docx2pdf_convert(docx_path, pdf_path)
-                    output_pdf_path = pdf_path
-                    converted_path = output_pdf_path
-                    doc_type = 'pdf'  # After conversion
-                    logger.info(f"DOCX converted to PDF: {pdf_path}")
-                except Exception as e:
-                    logger.error(f"DOCX to PDF conversion failed: {e}")
-                    raise HTTPException(status_code=500, detail="DOCX to PDF conversion failed")
-            elif fname.endswith('.jpg') or fname.endswith('.jpeg') or fname.endswith('.png'):
-                doc_type = 'image'
-            else:
-                doc_type = 'unknown'
+                    logger.error(f"❌ DOC to DOCX conversion failed: {e}")
+                    # Continue with original file
 
-            logger.info(f"Type detection used filename: '{received_filename}', detected type: '{doc_type}'")
+            logger.info(f"🔍 Final type detection: filename='{received_filename}' → type='{doc_type}'")
 
             # Process document with processor (use converted_path)
             result = document_processor.process_document(
@@ -352,10 +405,10 @@ async def upload(file: UploadFile = File(...)):
                 original_filename=received_filename
             )
 
-            # Build response data
+            # Build enhanced response data
             response_data = {
                 "document_id": result.id,
-                "original_filename": result.original_filename,
+                "original_filename": received_filename,  # Always preserve original filename
                 "quality_score": result.quality_metrics.overall_score,
                 "processing_tier": result.processing_tier.value,
                 "document_type": doc_type,
@@ -367,8 +420,18 @@ async def upload(file: UploadFile = File(...)):
                 "ocr_engine": result.ocr_engine,
                 "extracted_fields_count": result.extracted_fields_count,
                 "confidence": result.confidence,
+                # Additional metadata for n8n workflow
+                "file_size_mb": round(file_size_mb, 2),
+                "content_type": file.content_type,
                 "converted_docx": os.path.basename(converted_docx_path) if converted_docx_path else None,
-                "converted_pdf": os.path.basename(output_pdf_path) if output_pdf_path else None
+                "converted_pdf": os.path.basename(output_pdf_path) if output_pdf_path else None,
+                # Debugging information
+                "processing_metadata": {
+                    "original_type": detect_document_type(received_filename, file.content_type),
+                    "final_type": doc_type,
+                    "conversion_performed": output_pdf_path is not None or converted_docx_path is not None,
+                    "file_hash": file_hash
+                }
             }
 
             # Cache successful results in memory (if available)
@@ -380,7 +443,9 @@ async def upload(file: UploadFile = File(...)):
             queue_data = {
                 'document_id': result.id,
                 'quality_score': response_data["quality_score"],
-                'processing_tier': result.processing_tier.value
+                'processing_tier': result.processing_tier.value,
+                'original_filename': received_filename,
+                'document_type': doc_type
             }
 
             if result.processing_tier == ProcessingTier.HIGH_QUALITY:
@@ -397,20 +462,75 @@ async def upload(file: UploadFile = File(...)):
             # Update general counters
             redis_client.increment_counter('documents:processed')
                 
-            logger.info(f"✅ Document processed successfully: {result.id}")
-            return DocumentResponse(**response_data)
+            logger.info(f"✅ Document processed successfully: {result.id} (type: {doc_type})")
+            if doc_type == 'pdf' and output_pdf_path and os.path.exists(output_pdf_path):
+                background_tasks.add_task(os.unlink, output_pdf_path)
+                return FileResponse(
+                    output_pdf_path,
+                    media_type='application/pdf',
+                    filename=os.path.basename(output_pdf_path),
+                    background=background_tasks
+                )
+            # If not a PDF, return error instead of JSON
+            logger.error(f"File is not a PDF or PDF conversion failed for: {received_filename}")
+            raise HTTPException(status_code=400, detail="File could not be converted to PDF.")
             
         finally:
-            # Cleanup temp file
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
+            # Cleanup temp files
+            # Only delete temp_path and converted_docx_path here.
+            # output_pdf_path is deleted by background_tasks if sent as response.
+            for temp_file_path in [temp_path, converted_docx_path]:
+                if temp_file_path and os.path.exists(temp_file_path):
+                    try:
+                        os.unlink(temp_file_path)
+                    except Exception as e:
+                        logger.warning(f"Failed to cleanup temp file {temp_file_path}: {e}")
                 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Upload failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        logger.error(f"❌ Upload failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")\
+# --- PDF to Images Endpoint ---
 
+
+@app.post("/api/documents/extract-images")
+async def extract_images_from_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    """Extract images (pages as images) from a PDF and return file names."""
+    try:
+        # Save uploaded PDF to temp file
+        received_filename = file.filename or f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_pdf:
+            shutil.copyfileobj(file.file, temp_pdf)
+            temp_pdf_path = temp_pdf.name
+
+        # Output directory for images
+        output_dir = os.path.join(config["TEMP_FOLDER"], f"pdf_images_{uuid.uuid4().hex}")
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Convert PDF pages to images
+        images = convert_from_path(temp_pdf_path)
+        image_files = []
+        for i, img in enumerate(images):
+            img_filename = f"page_{i+1}.png"
+            img_path = os.path.join(output_dir, img_filename)
+            img.save(img_path, "PNG")
+            image_files.append(img_path)
+
+        # Optionally, schedule cleanup of temp files
+        background_tasks.add_task(os.unlink, temp_pdf_path)
+        # Optionally, schedule cleanup of output_dir and images after some time
+
+        # Return list of image file paths (relative or absolute)
+        return JSONResponse({
+            "success": True,
+            "image_files": image_files,
+            "output_dir": output_dir,
+            "page_count": len(image_files)
+        })
+    except Exception as e:
+        logger.error(f"❌ PDF to images extraction failed: {e}")
+        raise HTTPException(status_code=500, detail=f"PDF to images extraction failed: {str(e)}")
 @app.get("/api/documents/{document_id}/status")
 async def get_document_status(document_id: str):
     """Get processing status for a document"""

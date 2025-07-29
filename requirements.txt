@@ -1,3 +1,5 @@
+# For PDF to image conversion
+pdf2image
 # For DOCX text extraction
 docx2txt
 # For PDF processing
