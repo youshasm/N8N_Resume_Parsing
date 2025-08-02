@@ -2,169 +2,173 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "// Move file[0] to binary.file if needed\nreturn $input.all().map(item => {\n  if (item.json.file && Array.isArray(item.json.file) && item.json.file[0]) {\n    item.binary = item.binary || {};\n    item.binary.file = item.binary.file || item.json.file[0];\n    delete item.json.file; // Clean up JSON if you want\n  }\n  return item;\n});"
+        "jsCode": "// Enhanced final validation and data consistency check\nreturn $input.all().map(item => {\n  try {\n    if (!item.binary?.file?.data) {\n      throw new Error('Missing binary data');\n    }\n\n    // Log debugging information\n    console.log('Processing file:', item.binary?.file?.fileName);\n    console.log('Binary data type:', typeof item.binary.file.data);\n    console.log('Binary data length:', item.binary.file.data?.length);\n    console.log('MIME type:', item.binary.file.mimeType);\n\n    // Ensure proper binary structure\n    const binaryData = {\n      binary: {\n        file: {\n          ...item.binary.file,\n          mimeType: item.binary.file.mimeType || 'image/png',\n          fileType: 'image',\n          fileExtension: item.binary.file.fileName?.split('.').pop() || 'png',\n          data: item.binary.file.data\n        }\n      },\n      json: {\n        ...item.json,\n        fileName: item.binary.file.fileName,\n        mimeType: item.binary.file.mimeType || 'image/png'\n      }\n    };\n\n    // Validate base64 data\n    if (typeof binaryData.binary.file.data === 'string') {\n      try {\n        Buffer.from(binaryData.binary.file.data, 'base64');\n        console.log('Verified base64 string format');\n      } catch (e) {\n        throw new Error('Invalid base64 data');\n      }\n    } else if (Buffer.isBuffer(binaryData.binary.file.data)) {\n      console.log('Converting Buffer to base64');\n      binaryData.binary.file.data = binaryData.binary.file.data.toString('base64');\n    }\n\n    return binaryData;\n  } catch (error) {\n    console.error('Error processing image:', error);\n    throw error; // Let n8n handle the error\n  }\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        144
+        2160,
+        208
       ],
-      "id": "a821ad2a-cf02-4bdf-ac5a-4cffd70ae8e5",
-      "name": "Code"
+      "id": "f6dc9f44-6990-4c2e-b4d4-3f213807d3f1",
+      "name": "Final Debug before LLM Chain"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "d505e596-8a4b-4118-adac-5c1be8492a60",
-              "name": "original_filename",
-              "value": "={{ $json.data.original_filename }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
+        "jsCode": "// Enhanced validation with proper binary structure\nconst validItems = [];\n\n$input.all().forEach((item, index) => {\n  try {\n    // Validate basic structure\n    if (!item?.binary?.file?.data) {\n      console.log(`Skipping item ${index}: Missing binary data`);\n      return;\n    }\n\n    // Ensure binary data is properly formatted\n    const binary = {\n      file: {\n        data: item.binary.file.data,\n        mimeType: item.binary.file.mimeType || 'image/png',\n        fileName: item.binary.file.fileName || `image_${index}.png`,\n        fileExtension: item.binary.file.fileName?.split('.').pop() || 'png'\n      }\n    };\n\n    // Validate data content\n    if (binary.file.data.length === 0) {\n      console.log(`Skipping item ${index}: Empty binary data`);\n      return;\n    }\n\n    // Ensure the data is in base64 format\n    if (Buffer.isBuffer(binary.file.data)) {\n      binary.file.data = binary.file.data.toString('base64');\n    }\n\n    validItems.push({\n      json: {\n        fileName: binary.file.fileName,\n        mimeType: binary.file.mimeType,\n        validation_passed: true,\n        timestamp: new Date().toISOString()\n      },\n      binary\n    });\n\n    console.log(`Item ${index} passed validation - file: ${binary.file.fileName}`);\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n  }\n});\n\nconsole.log(`Filter processed ${$input.all().length} items, returning ${validItems.length} valid items`);\nreturn validItems;"
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1536,
-        624
-      ],
-      "id": "f4cce5fd-f002-4d05-b923-1c8c3c93dcb4",
-      "name": "Edit Fields1"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "5d5e8589-09d6-4b11-b17a-e29fb8f032db",
-              "name": "original_filename",
-              "value": "={{ $json.file[0].filename }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1648,
-        272
-      ],
-      "id": "55c0393e-ec5e-452f-8ec2-7268da7ab6a0",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "formTitle": "upload",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "file",
-              "fieldType": "file"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
-      "position": [
-        -2208,
-        272
-      ],
-      "id": "b418fa67-1bb8-40c9-8946-a6f27632b20a",
-      "name": "On form submission",
-      "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Further improved classification logic for robust docx detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
-      },
-      "id": "0db008aa-c84c-4ce5-9338-38a45dbd25ac",
-      "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2096,
-        624
-      ]
+        1872,
+        256
+      ],
+      "id": "02521e2b-353b-4cf5-98e0-7b3e5db4a7dc",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fixed Code2 with proper data validation and error handling\nreturn $input.all().map((item, index) => {\n  try {\n    // Validate input structure\n    if (!item || typeof item !== 'object') {\n      console.error(`Item ${index} is not a valid object:`, item);\n      return {\n        json: {\n          error: 'Invalid item structure',\n          original_item: item,\n          processing_timestamp: new Date().toISOString()\n        }\n      };\n    }\n\n    // Ensure json object exists\n    if (!item.json) {\n      item.json = {};\n    }\n\n    // Enhanced binary data handling\n    if (item.binary && item.binary.file && item.binary.file.data) {\n      let processedData = item.binary.file.data;\n      \n      // Convert Buffer to base64 if needed\n      if (Buffer.isBuffer(processedData)) {\n        processedData = processedData.toString('base64');\n      }\n      \n      // Validate base64 string\n      if (typeof processedData === 'string') {\n        try {\n          // Test if it's valid base64\n          Buffer.from(processedData, 'base64');\n        } catch (e) {\n          throw new Error('Invalid base64 data');\n        }\n      }\n      \n      return {\n        json: {\n          ...item.json,\n          original_filename: item.binary.file.fileName || item.json.original_filename || 'document.png',\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: true,\n          binary_data_type: typeof processedData,\n          binary_data_length: processedData.length || 0,\n          data_format: 'base64'\n        },\n        binary: {\n          file: {\n            data: processedData,\n            fileName: item.binary.file.fileName || 'document.png',\n            mimeType: item.binary.file.mimeType || 'image/png'\n          }\n        }\n      };\n    } else {\n      // Return item without binary data but with proper structure\n      return {\n        json: {\n          ...item.json,\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: false,\n          error: 'No valid binary data found'\n        }\n      };\n    }\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n    return {\n      json: {\n        error: error.message,\n        item_index: index,\n        processing_timestamp: new Date().toISOString()\n      }\n    };\n  }\n}).filter(item => item !== null && item !== undefined);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "7c9f5ca8-b9c8-4418-b836-0572a871ea6f",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.image_files.replace('./documents', '/documents') }}",
+        "options": {
+          "dataPropertyName": "file"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -288
+      ],
+      "id": "1c351106-bd58-47e5-b056-761c7916c4cd",
+      "name": "Read/Write Files from Disk",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "image_files",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        752,
+        -288
+      ],
+      "id": "2114b783-3aca-455e-a94e-77523eb82be8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  if (item.binary && item.binary.data) {\n    item.binary.file = item.binary.data;\n    delete item.binary.data;\n  }\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -288
+      ],
+      "id": "195f5857-a019-4167-8ecc-1d321235f309",
+      "name": "Code1"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://imp-fastapi:8000/api/classification/store",
+        "url": "http://imp-fastapi:8000/api/documents/extract-images",
         "sendBody": true,
+        "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
-              "name": "document_id",
-              "value": "={{ $json.document_id }}"
-            },
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        -288
+      ],
+      "id": "66a8b0f8-d2be-4fa5-9a7e-4de56171f5e7",
+      "name": "Extract Images"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
             {
-              "name": "document_type",
-              "value": "={{ $json.document_type }}"
-            },
-            {
-              "name": "sub_type",
-              "value": "={{ $json.sub_type }}"
-            },
-            {
-              "name": "confidence",
-              "value": "={{ $json.confidence }}"
-            },
-            {
-              "name": "classification_factors",
-              "value": "={{ $json.classification_factors }}"
-            },
-            {
-              "name": "processing_requirements",
-              "value": "={{ $json.processing_requirements }}"
-            },
-            {
-              "name": "original_filename",
-              "value": "={{ $json.original_filename }}"
-            },
-            {
-              "name": "quality_score",
-              "value": "={{ $json.quality_score }}"
-            },
-            {
-              "name": "classification_metadata",
-              "value": "={{ $json.classification_metadata }}"
+              "field1": "original_filename",
+              "field2": "original_filename"
             }
           ]
         },
         "options": {}
       },
-      "id": "437d6cf0-c8fb-4bc5-a944-07460ce93f72",
-      "name": "Store Classification1",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
       "position": [
-        -1920,
-        624
-      ]
+        -512,
+        -304
+      ],
+      "id": "da762123-147a-467b-a281-ecb531cf59b3",
+      "name": "Merge"
     },
     {
       "parameters": {
-        "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
+        "method": "POST",
+        "url": "http://imp-fastapi:8000/api/documents/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "file"
+            }
+          }
+        }
       },
-      "id": "b7432a8f-fed8-4069-b7f2-b11e1211eeb7",
-      "name": "Classify File Type1",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "id": "8e442979-acb1-43e3-9686-e68aad9c0e1a",
+      "name": "Convert DOCX to PDF (FastAPI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        -1712,
-        624
-      ]
+        144,
+        -448
+      ],
+      "alwaysOutputData": false
     },
     {
       "parameters": {
@@ -268,317 +272,335 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -1152,
-        256
+        -240,
+        -336
       ],
-      "id": "b95258f8-6ab1-4807-984e-370a55c05ab6",
+      "id": "e5a47189-1cc4-407d-983e-dbe4669b1d0f",
       "name": "Switch1"
     },
     {
       "parameters": {
+        "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
+      },
+      "id": "387e9bb8-f9b3-4782-8191-06b6ae1a44c7",
+      "name": "Classify File Type1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        32
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://imp-fastapi:8000/api/documents/upload",
+        "url": "http://imp-fastapi:8000/api/classification/store",
         "sendBody": true,
-        "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "file"
+              "name": "document_id",
+              "value": "={{ $json.document_id }}"
+            },
+            {
+              "name": "document_type",
+              "value": "={{ $json.document_type }}"
+            },
+            {
+              "name": "sub_type",
+              "value": "={{ $json.sub_type }}"
+            },
+            {
+              "name": "confidence",
+              "value": "={{ $json.confidence }}"
+            },
+            {
+              "name": "classification_factors",
+              "value": "={{ $json.classification_factors }}"
+            },
+            {
+              "name": "processing_requirements",
+              "value": "={{ $json.processing_requirements }}"
+            },
+            {
+              "name": "original_filename",
+              "value": "={{ $json.original_filename }}"
+            },
+            {
+              "name": "quality_score",
+              "value": "={{ $json.quality_score }}"
+            },
+            {
+              "name": "classification_metadata",
+              "value": "={{ $json.classification_metadata }}"
             }
           ]
         },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file",
-              "outputPropertyName": "file"
-            }
-          }
-        }
+        "options": {}
       },
-      "id": "65ebbec1-52f5-48b4-8284-4c2ace6e4030",
-      "name": "Convert DOCX to PDF (FastAPI)",
+      "id": "e4c9db74-94f8-42a0-9426-7e7c04763d23",
+      "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -768,
-        144
-      ],
-      "alwaysOutputData": false
+        -1008,
+        32
+      ]
     },
     {
       "parameters": {
-        "mode": "combine",
-        "advanced": true,
-        "mergeByFields": {
+        "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
+      },
+      "id": "4a5e6586-d4fa-4a11-84cf-c9ce78fcb1a2",
+      "name": "Classification Engine1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1184,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "upload",
+        "formFields": {
           "values": [
             {
-              "field1": "original_filename",
-              "field2": "original_filename"
+              "fieldLabel": "file",
+              "fieldType": "file"
             }
           ]
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
       "position": [
-        -1424,
-        288
+        -1296,
+        -320
       ],
-      "id": "016c07c8-4308-4922-b90b-0f3edc2d2a5e",
-      "name": "Merge"
+      "id": "6c42678e-a619-4252-82f0-409321d52152",
+      "name": "On form submission",
+      "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://imp-fastapi:8000/api/documents/extract-images",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
+        "assignments": {
+          "assignments": [
             {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "file"
+              "id": "5d5e8589-09d6-4b11-b17a-e29fb8f032db",
+              "name": "original_filename",
+              "value": "={{ $json.file[0].filename }}",
+              "type": "string"
             }
           ]
         },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
+        "includeOtherFields": true,
+        "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        -368,
-        304
+        -736,
+        -320
       ],
-      "id": "c9c22a7a-0269-4e26-945d-4bdfa5b42450",
-      "name": "Extract Images"
+      "id": "da2be414-fbf1-4022-b257-fc6dd212fe2f",
+      "name": "Edit Fields"
     },
     {
       "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  if (item.binary && item.binary.data) {\n    item.binary.file = item.binary.data;\n    delete item.binary.data;\n  }\n  return item;\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -592,
-        304
-      ],
-      "id": "a6d0ba92-6208-4a24-be57-b87b1ff49abc",
-      "name": "Code1"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "<OCR_WITH_REGION>Extract name, email, qualifications, and contact information",
-        "messages": {
-          "messageValues": [
+        "assignments": {
+          "assignments": [
             {
-              "type": "HumanMessagePromptTemplate",
-              "messageType": "imageBinary",
-              "binaryImageDataKey": "file"
+              "id": "d505e596-8a4b-4118-adac-5c1be8492a60",
+              "name": "original_filename",
+              "value": "={{ $json.data.original_filename }}",
+              "type": "string"
             }
           ]
         },
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.7,
-      "position": [
-        1360,
-        544
-      ],
-      "id": "b2e55f79-8b4e-43ce-a7e6-3c712c30044c",
-      "name": "Basic LLM Chain"
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "image_files",
+        "includeOtherFields": true,
         "options": {}
       },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        -160,
-        304
+        -624,
+        32
       ],
-      "id": "aafce211-963e-450f-b467-1d95a7898958",
-      "name": "Split Out"
+      "id": "80c13391-17f4-406d-a022-e9b8803e9d47",
+      "name": "Edit Fields1"
     },
     {
       "parameters": {
-        "fileSelector": "={{ $json.image_files.replace('./documents', '/documents') }}",
-        "options": {
-          "dataPropertyName": "file"
-        }
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        80,
-        304
-      ],
-      "id": "c19cf192-d22c-4cde-99f2-9431a1c86c92",
-      "name": "Read/Write Files from Disk",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  if (item.binary && item.binary.file && typeof item.binary.file.data === 'string') {\n    // Decode base64 string to Buffer\n    const buf = Buffer.from(item.binary.file.data, 'base64');\n    return {\n      json: {\n        ...item.json,\n        original_filename: item.binary.file.fileName || item.json?.original_filename || 'page.png',\n        document_type: item.json?.document_type || 'image',\n        page_number: item.json?.page_number || 1,\n        processing_timestamp: new Date().toISOString(),\n        extraction_task: 'document_analysis',\n        expected_content: item.json?.sub_type || 'general_document',\n        image_info: {\n          size_bytes: buf.length,\n          mime_type: item.binary.file.mimeType || 'image/png',\n          file_name: item.binary.file.fileName || 'page.png'\n        }\n      },\n      binary: {\n        file: {\n          data: buf,\n          fileName: item.binary.file.fileName || 'page.png',\n          mimeType: item.binary.file.mimeType || 'image/png'\n        }\n      }\n    };\n  }\n  return null;\n}).filter(Boolean);"
+        "jsCode": "// Move file[0] to binary.file if needed\nreturn $input.all().map(item => {\n  if (item.json.file && Array.isArray(item.json.file) && item.json.file[0]) {\n    item.binary = item.binary || {};\n    item.binary.file = item.binary.file || item.json.file[0];\n    delete item.json.file; // Clean up JSON if you want\n  }\n  return item;\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        544
+        -48,
+        -448
       ],
-      "id": "14871aa4-1af5-4dc7-9c17-1774111cca57",
-      "name": "Code2"
+      "id": "66081633-13ea-4c82-928b-b4438f758a71",
+      "name": "Code"
     },
     {
       "parameters": {
-        "jsCode": "// Inspect and log binary.file properties before LLM\nreturn $input.all().map(item => {\n  const hasBinary = !!item.binary && !!item.binary.file;\n  const hasData = hasBinary && !!item.binary.file.data;\n  const fileName = hasBinary ? item.binary.file.fileName : undefined;\n  const mimeType = hasBinary ? item.binary.file.mimeType : undefined;\n  item.json = {\n    ...item.json,\n    _debug_binary_file_present: hasBinary,\n    _debug_binary_file_data_present: hasData,\n    _debug_binary_file_fileName: fileName,\n    _debug_binary_file_mimeType: mimeType\n  };\n  return item;\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        752,
-        544
-      ],
-      "id": "1a758003-ab1d-49b0-b487-bbabded72e4d",
-      "name": "Debug Binary Before LLM"
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all().filter(item => item.binary && item.binary.file && item.binary.file.data);"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        960,
-        544
-      ],
-      "id": "221a52f1-070c-46ad-8822-8a7379d6775b",
-      "name": "Code3"
-    },
-    {
-      "parameters": {
-        "model": "microsoft/Florence-2-large",
+        "documentType": "image_url",
+        "binaryProperty": "file",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmOpenHuggingFaceInference",
+      "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        1136,
-        832
+        1248,
+        -288
       ],
-      "id": "22e173f2-f721-403c-8b3b-62c5b86f3072",
-      "name": "Hugging Face Inference Model",
+      "id": "dd900862-c2a0-4830-9146-803d8c094787",
+      "name": "Extract text",
       "credentials": {
-        "huggingFaceApi": {
-          "id": "EWI13xI6NzMSPuyl",
-          "name": "HuggingFaceApi account"
+        "mistralCloudApi": {
+          "id": "6kaLWRFBU2afgYKd",
+          "name": "Mistral Cloud account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "return $input.all().map(item => ({\n  json: {\n    ...item.json,\n    _debug_binary: !!item.binary,\n    _debug_binary_file: !!item.binary?.file,\n    _debug_binary_file_data_type: typeof item.binary?.file?.data,\n    _debug_binary_file_data_isBuffer: Buffer.isBuffer(item.binary?.file?.data),\n    _debug_binary_file_data_length: item.binary?.file?.data?.length\n  }\n}));"
+        "jsCode": "// Aggregate all OCR results into a single string\nlet allText = $input.all()\n  .map(item => item.json.extractedText || \"\")\n  .join(\"\\n\\n---\\n\\n\"); // separator between pages\n\nreturn [{\n  json: {\n    fullText: allText\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        288,
-        304
+        1456,
+        -288
       ],
-      "id": "227930ed-fd44-4f9c-a62f-39d7da8f74a6",
-      "name": "Debug Code2"
+      "id": "c83e59c8-62d8-4a06-85e1-d21ccfe95e8f",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.fullText }}\nDerive name, email, phone number",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1696,
+        -288
+      ],
+      "id": "652bab33-22bf-4d72-9092-9fc2c9a38098",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -80
+      ],
+      "id": "a1fc6939-4bf5-4477-ab6c-c828f0805767",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "r3VNOqJJuQYe97jA",
+          "name": "Groq account"
+        }
+      }
     }
   ],
   "connections": {
-    "Code": {
+    "Final Debug before LLM Chain": {
+      "main": [
+        []
+      ]
+    },
+    "Code3": {
       "main": [
         [
           {
-            "node": "Convert DOCX to PDF (FastAPI)",
+            "node": "Final Debug before LLM Chain",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields1": {
+    "Code2": {
       "main": [
         [
           {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Merge",
+            "node": "Code3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "On form submission": {
+    "Read/Write Files from Disk": {
       "main": [
         [
           {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Classification Engine1",
+            "node": "Extract text",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Classification Engine1": {
+    "Split Out": {
       "main": [
         [
           {
-            "node": "Store Classification1",
+            "node": "Read/Write Files from Disk",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Store Classification1": {
+    "Code1": {
       "main": [
         [
           {
-            "node": "Classify File Type1",
+            "node": "Extract Images",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Classify File Type1": {
+    "Extract Images": {
       "main": [
         [
           {
-            "node": "Edit Fields1",
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert DOCX to PDF (FastAPI)": {
+      "main": [
+        [
+          {
+            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -608,11 +630,6 @@
             "index": 0
           }
         ],
-        []
-      ]
-    },
-    "Convert DOCX to PDF (FastAPI)": {
-      "main": [
         [
           {
             "node": "Code1",
@@ -622,84 +639,100 @@
         ]
       ]
     },
-    "Merge": {
+    "Classify File Type1": {
       "main": [
         [
           {
-            "node": "Switch1",
+            "node": "Edit Fields1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract Images": {
+    "Store Classification1": {
       "main": [
         [
           {
-            "node": "Split Out",
+            "node": "Classify File Type1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code1": {
+    "Classification Engine1": {
       "main": [
         [
           {
-            "node": "Extract Images",
+            "node": "Store Classification1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split Out": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "Read/Write Files from Disk",
+            "node": "Classification Engine1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Read/Write Files from Disk": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "Debug Code2",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code2": {
+    "Edit Fields1": {
       "main": [
         [
           {
-            "node": "Debug Binary Before LLM",
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Convert DOCX to PDF (FastAPI)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Debug Binary Before LLM": {
+    "Extract text": {
       "main": [
         [
           {
-            "node": "Code3",
+            "node": "Code4",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code3": {
+    "Code4": {
       "main": [
         [
           {
@@ -710,23 +743,17 @@
         ]
       ]
     },
-    "Hugging Face Inference Model": {
+    "Basic LLM Chain": {
+      "main": [
+        []
+      ]
+    },
+    "Groq Chat Model": {
       "ai_languageModel": [
         [
           {
             "node": "Basic LLM Chain",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Debug Code2": {
-      "main": [
-        [
-          {
-            "node": "Code2",
-            "type": "main",
             "index": 0
           }
         ]
