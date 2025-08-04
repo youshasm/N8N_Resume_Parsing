@@ -49,7 +49,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        992,
+        800,
         -288
       ],
       "id": "1c351106-bd58-47e5-b056-761c7916c4cd",
@@ -64,24 +64,11 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        752,
+        560,
         -288
       ],
       "id": "2114b783-3aca-455e-a94e-77523eb82be8",
       "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  if (item.binary && item.binary.data) {\n    item.binary.file = item.binary.data;\n    delete item.binary.data;\n  }\n  return item;\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        320,
-        -288
-      ],
-      "id": "195f5857-a019-4167-8ecc-1d321235f309",
-      "name": "Code1"
     },
     {
       "parameters": {
@@ -107,7 +94,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        544,
+        352,
         -288
       ],
       "id": "66a8b0f8-d2be-4fa5-9a7e-4de56171f5e7",
@@ -442,28 +429,8 @@
         -448
       ],
       "id": "66081633-13ea-4c82-928b-b4438f758a71",
-      "name": "Code"
-    },
-    {
-      "parameters": {
-        "documentType": "image_url",
-        "binaryProperty": "file",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.mistralAi",
-      "typeVersion": 1,
-      "position": [
-        1248,
-        -288
-      ],
-      "id": "dd900862-c2a0-4830-9146-803d8c094787",
-      "name": "Extract text",
-      "credentials": {
-        "mistralCloudApi": {
-          "id": "6kaLWRFBU2afgYKd",
-          "name": "Mistral Cloud account"
-        }
-      }
+      "name": "Code",
+      "disabled": true
     },
     {
       "parameters": {
@@ -472,7 +439,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1456,
+        1264,
         -288
       ],
       "id": "c83e59c8-62d8-4a06-85e1-d21ccfe95e8f",
@@ -487,7 +454,7 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        1696,
+        1504,
         -288
       ],
       "id": "652bab33-22bf-4d72-9092-9fc2c9a38098",
@@ -500,8 +467,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1632,
-        -80
+        1504,
+        -96
       ],
       "id": "a1fc6939-4bf5-4477-ab6c-c828f0805767",
       "name": "Groq Chat Model",
@@ -509,6 +476,104 @@
         "groqApi": {
           "id": "r3VNOqJJuQYe97jA",
           "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## File Format Classification",
+        "height": 224,
+        "width": 816,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1280,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "aee62676-e900-47bf-a518-5f5bb6854333",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## DOCX to PDF",
+        "height": 224,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "18b1dd8c-8f00-45ea-9cfa-c814c38e6553",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## OCR",
+        "height": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        992,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "19ef8b15-51ce-4560-afdb-a3f525079542",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AI",
+        "height": 368,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1456,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "783a3b2d-963e-4ac4-a604-854530122634",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Preprocessing",
+        "height": 240,
+        "width": 624,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "8deb1b4c-28dd-462f-b7ed-4fe2017ab2af",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "binaryProperty": "file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        32
+      ],
+      "id": "dd900862-c2a0-4830-9146-803d8c094787",
+      "name": "Extract text",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "6kaLWRFBU2afgYKd",
+          "name": "Mistral Cloud account"
         }
       }
     }
@@ -563,17 +628,6 @@
         ]
       ]
     },
-    "Code1": {
-      "main": [
-        [
-          {
-            "node": "Extract Images",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Extract Images": {
       "main": [
         [
@@ -600,7 +654,7 @@
       "main": [
         [
           {
-            "node": "Code1",
+            "node": "Extract Images",
             "type": "main",
             "index": 0
           }
@@ -625,14 +679,14 @@
         ],
         [
           {
-            "node": "Code1",
+            "node": "Extract text",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Code1",
+            "node": "Extract text",
             "type": "main",
             "index": 0
           }
@@ -721,17 +775,6 @@
         ]
       ]
     },
-    "Extract text": {
-      "main": [
-        [
-          {
-            "node": "Code4",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code4": {
       "main": [
         [
@@ -754,6 +797,17 @@
           {
             "node": "Basic LLM Chain",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract text": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
             "index": 0
           }
         ]

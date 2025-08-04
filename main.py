@@ -1,7 +1,7 @@
 
 # --- Imports ---
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Request, Body, BackgroundTasks # type: ignore
-from fastapi.responses import FileResponse,JSONResponse
+from fastapi.responses import FileResponse,JSONResponse #type:ignore
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -11,7 +11,7 @@ import tempfile
 from datetime import datetime
 import logging
 import subprocess
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path #type:ignore
 import uuid
 
 # Configure logging

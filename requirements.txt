@@ -1,60 +1,9 @@
-# For PDF to image conversion
-pdf2image
-# For DOCX text extraction
-docx2txt
-# For PDF processing
-pymupdf
-# For DOCX to PDF conversion
-docx2pdf
-# IMP Document Processing System - Python Dependencies
-# Core FastAPI and web framework
+
+# Required for FastAPI app and used imports
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 pydantic==2.5.0
-
-# Database
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.23
-alembic==1.13.1
-
-# Document processing
-python-magic==0.4.27
-PyPDF2==3.0.1
-python-docx==1.1.0
-Pillow==10.1.0
-pytesseract==0.3.10
-
-# AI/ML libraries (CPU-only versions)
-transformers==4.36.0
-datasets==2.15.0
-huggingface-hub==0.19.4
-tokenizers==0.15.0
-numpy==1.24.4
-pandas==2.1.4
-
-# Image processing
-opencv-python-headless==4.8.1.78
-scikit-image==0.22.0
-
-# Utilities
-redis==5.0.1
-python-dotenv==1.0.0
 requests==2.31.0
-aiofiles==23.2.1
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-
-# Logging and monitoring
-structlog==23.2.0
-rich==13.7.0
-
-# File handling
-watchdog==3.0.0
-pathlib2==2.3.7
-
-# Optional: Development dependencies
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==23.11.0
-isort==5.12.0
+Pillow==10.1.0
+pdf2image
