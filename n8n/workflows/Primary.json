@@ -2,67 +2,6 @@
   "nodes": [
     {
       "parameters": {
-        "fileSelector": "={{ $json.image_files.replace('./documents', '/documents') }}",
-        "options": {
-          "dataPropertyName": "file"
-        }
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        848,
-        -64
-      ],
-      "id": "95e862ef-e83d-4f5f-9d47-c36978e8d1c5",
-      "name": "Read/Write Files from Disk",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "image_files",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        608,
-        -64
-      ],
-      "id": "c6e687f8-0bb1-4f0d-9619-21919f29672b",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://imp-fastapi:8000/api/documents/extract-images",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "file"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        400,
-        -64
-      ],
-      "id": "c5277224-a9a5-475a-a344-5e4e5c5310cd",
-      "name": "Extract Images"
-    },
-    {
-      "parameters": {
         "mode": "combine",
         "advanced": true,
         "mergeByFields": {
@@ -78,10 +17,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -672,
-        96
+        576,
+        544
       ],
-      "id": "073bfebb-1b5c-40a4-96da-5d2ae5168a90",
+      "id": "4c2974b8-2e94-41fa-8a93-2b9e25e57b1c",
       "name": "Merge"
     },
     {
@@ -108,13 +47,13 @@
           }
         }
       },
-      "id": "678e3890-d1f1-484c-a14f-8617439ad704",
+      "id": "84d5f768-8448-44a6-ba93-c95d739d7218",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -16,
-        -64
+        1232,
+        400
       ],
       "alwaysOutputData": false
     },
@@ -220,36 +159,36 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -400,
-        64
+        848,
+        512
       ],
-      "id": "2ea163c3-b315-49c8-8a95-cd3c3cf36dc2",
+      "id": "0d8e277a-c97d-44b7-b9b4-661d100ab515",
       "name": "Switch1"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "9e34dcfe-f614-40b3-821d-2861af2a4ebb",
+      "id": "4586f84d-2384-4691-bee2-dbf47e6dc549",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        448
+        288,
+        896
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "7ff93279-1642-461a-b1d2-78b8b655c323",
+      "id": "7467eefa-94b3-4874-9d06-1ca8ba5ac9d1",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1344,
-        448
+        -96,
+        896
       ]
     },
     {
@@ -271,10 +210,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -1456,
-        80
+        -208,
+        528
       ],
-      "id": "0e605e9a-4b01-4a4d-a662-82ed479e353a",
+      "id": "2349246b-1335-4343-8dd8-6e0fd828ec0f",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -296,10 +235,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -896,
-        80
+        352,
+        528
       ],
-      "id": "c53af63a-5cde-47f4-841a-c1d479540c3c",
+      "id": "f3120800-d70f-4ee6-8c37-f18c178f6c5b",
       "name": "Edit Fields"
     },
     {
@@ -320,10 +259,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -784,
-        448
+        464,
+        896
       ],
-      "id": "5e969a18-e418-439d-abea-0811ec8274df",
+      "id": "5eec4b3c-6d11-4765-adc8-47cb0084b9a0",
       "name": "Edit Fields1"
     },
     {
@@ -349,27 +288,24 @@
       "position": [
         2352,
         560
-        1104,
-        112
       ],
-      "id": "f26bc64c-2e49-4959-8f1e-acc32a1951db",
+      "id": "f9f571e6-5c14-479e-a97b-a1b34f48cf18",
       "name": "Code4"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.fullText }}\n\nExtract ALL available information from this CV/resume and return it as a comprehensive JSON object. Include:\n\n1. **Personal Information**:\n   - Full name, email, phone, address, date of birth, nationality, LinkedIn, website, profile photo\n\n2. **Work Experience**:\n   - Company names, job titles, dates, responsibilities, achievements, technologies used\n\n3. **Education**:\n   - Institutions, degrees, majors, graduation dates, GPA, honors, relevant coursework\n\n4. **Skills**:\n   - Technical skills, programming languages, frameworks, tools, soft skills, languages spoken\n\n5. **Projects**:\n   - Project names, descriptions, technologies, links, outcomes, team size\n\n6. **Certifications**:\n   - Certification names, issuing organizations, dates, expiry dates, credential IDs\n\n7. **Awards & Honors**:\n   - Award names, organizations, dates, descriptions\n\n8. **Publications**:\n   - Paper titles, journals, dates, co-authors, DOI\n\n9. **Volunteer Work**:\n   - Organizations, roles, dates, responsibilities\n\n10. **References**:\n    - Names, titles, companies, contact information\n\n11. **Additional Information**:\n    - Interests, hobbies, memberships, achievements, summary/objective\n\nIMPORTANT: Return ONLY valid JSON with no additional text, markdown formatting, or explanations. Start with { and end with }. Use camelCase for field names. Structure the data logically and preserve all details found in the document.",
-        "hasOutputParser": true,
+        "text": "={{ $json.fullText }}\nDerive name, email, phone number",
         "hasOutputParser": true,
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        1344,
-        112
+        2592,
+        560
       ],
-      "id": "6196c2ad-edbe-411a-a0df-7923e7780cf1",
+      "id": "8d07cfa0-5caf-4927-ac3c-0119686298fa",
       "name": "Basic LLM Chain"
     },
     {
@@ -379,14 +315,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1344,
-        304
+        2592,
+        752
       ],
-      "id": "dcfbc7a6-efb7-47c3-97ad-c2b69e778241",
+      "id": "58e39e98-e4b7-4594-9350-8e53f3ccbd83",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
-          "id": "ygZ1rEEaZo29cjcm",
+          "id": "r3VNOqJJuQYe97jA",
           "name": "Groq account"
         }
       }
@@ -400,11 +336,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1440,
-        368
+        -192,
+        816
       ],
       "typeVersion": 1,
-      "id": "08422ee2-e6a9-4b08-9dda-68123cf5b43e",
+      "id": "dde45d9b-79d6-4593-8b3d-230fe6957021",
       "name": "Sticky Note"
     },
     {
@@ -415,11 +351,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -272,
-        -144
+        976,
+        320
       ],
       "typeVersion": 1,
-      "id": "981c3f3f-7a66-4f6c-9f45-5eeb6f8527fa",
+      "id": "0902a002-d73b-4578-996e-b292129ddea9",
       "name": "Sticky Note1"
     },
     {
@@ -430,11 +366,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        752,
-        176
+        2000,
+        624
       ],
       "typeVersion": 1,
-      "id": "7aa813f7-3f57-4889-9236-dd46db828b2b",
+      "id": "5a177584-8fac-4ad2-84e2-60e705f759ff",
       "name": "Sticky Note2"
     },
     {
@@ -446,28 +382,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1296,
-        64
+        2544,
+        512
       ],
       "typeVersion": 1,
-      "id": "8b868463-a951-4018-8b82-abeba09ca251",
+      "id": "05d30ffe-adbd-4f9b-b408-2be13f3345f6",
       "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "## Preprocessing",
-        "height": 240,
-        "width": 624,
-        "color": 2
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        368,
-        -128
-      ],
-      "typeVersion": 1,
-      "id": "1c1a71fb-af4e-490a-a320-24ba61c7bc59",
-      "name": "Sticky Note4"
     },
     {
       "parameters": {
@@ -477,14 +397,14 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        816,
-        256
+        2064,
+        704
       ],
-      "id": "466db1e1-434f-4723-8011-b505b221ae7e",
+      "id": "c2dcdc6b-5632-4a1c-9729-a90ca1650cc8",
       "name": "Extract text",
       "credentials": {
         "mistralCloudApi": {
-          "id": "TM0dQDVCdBHABbQq",
+          "id": "6kaLWRFBU2afgYKd",
           "name": "Mistral Cloud account"
         }
       }
@@ -536,13 +456,13 @@
         },
         "options": {}
       },
-      "id": "afd97fda-8901-4b2b-83df-cceba0e465f3",
+      "id": "90b993c7-0cb7-4c58-b0e5-1803eec23ddb",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -1168,
-        448
+        80,
+        896
       ]
     },
     {
@@ -553,11 +473,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        608,
-        512
+        1856,
+        960
       ],
       "typeVersion": 1,
-      "id": "b3450a25-13a5-4d65-9609-980f3981f66d",
+      "id": "c82e1177-7092-4883-a549-b08fa26adfb7",
       "name": "Sticky Note5"
     },
     {
@@ -569,55 +489,17 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        672,
-        576
+        1920,
+        1024
       ],
-      "id": "ff9d521d-0ac5-49fa-bb79-0666d8c9d548",
+      "id": "8bfbb101-3e3a-4601-b2ec-9651dc312bdf",
       "name": "Extract text1",
       "credentials": {
         "mistralCloudApi": {
-          "id": "TM0dQDVCdBHABbQq",
+          "id": "6kaLWRFBU2afgYKd",
           "name": "Mistral Cloud account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"personalInformation\": {\n    \"fullName\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+1234567890\",\n    \"address\": \"123 Main Street, City, State 12345\",\n    \"dateOfBirth\": \"1990-01-01\",\n    \"nationality\": \"American\",\n    \"linkedin\": \"linkedin.com/in/johndoe\",\n    \"github\": \"github.com/johndoe\",\n    \"website\": \"https://johndoe.com\",\n    \"profilePhoto\": \"https://example.com/photo.jpg\"\n  },\n  \"workExperience\": [\n    {\n      \"company\": \"Tech Company Inc\",\n      \"jobTitle\": \"Senior Software Engineer\",\n      \"startDate\": \"2020-01-01\",\n      \"endDate\": \"2023-12-31\",\n      \"location\": \"San Francisco, CA\",\n      \"description\": \"Led development of web applications using modern technologies\",\n      \"responsibilities\": [\n        \"Developed and maintained web applications\",\n        \"Led a team of 5 developers\",\n        \"Implemented CI/CD pipelines\"\n      ],\n      \"achievements\": [\n        \"Reduced application load time by 50%\",\n        \"Successfully delivered 10+ major features\"\n      ],\n      \"technologiesUsed\": [\n        \"React\",\n        \"Node.js\",\n        \"Python\",\n        \"AWS\"\n      ]\n    }\n  ],\n  \"education\": [\n    {\n      \"institution\": \"University of Technology\",\n      \"degree\": \"Bachelor of Science in Computer Science\",\n      \"major\": \"Computer Science\",\n      \"graduationDate\": \"2019-05-15\",\n      \"gpa\": \"3.8\",\n      \"honors\": \"Magna Cum Laude\",\n      \"relevantCoursework\": [\n        \"Data Structures and Algorithms\",\n        \"Database Systems\",\n        \"Software Engineering\",\n        \"Web Development\"\n      ],\n      \"location\": \"Boston, MA\"\n    }\n  ],\n  \"skills\": {\n    \"programming\": [\n      \"JavaScript\",\n      \"Python\",\n      \"Java\",\n      \"C++\",\n      \"TypeScript\"\n    ],\n    \"webDevelopment\": [\n      \"React\",\n      \"Node.js\",\n      \"Express.js\",\n      \"HTML/CSS\",\n      \"Bootstrap\"\n    ],\n    \"mobileDevelopment\": [\n      \"React Native\",\n      \"Flutter\",\n      \"iOS Development\"\n    ],\n    \"backendDevelopment\": [\n      \"REST APIs\",\n      \"GraphQL\",\n      \"Microservices\",\n      \"Docker\"\n    ],\n    \"devOps\": [\n      \"AWS\",\n      \"Docker\",\n      \"Kubernetes\",\n      \"CI/CD\",\n      \"Jenkins\"\n    ],\n    \"tools\": [\n      \"Git\",\n      \"VS Code\",\n      \"Postman\",\n      \"JIRA\",\n      \"Figma\"\n    ],\n    \"databases\": [\n      \"MySQL\",\n      \"MongoDB\",\n      \"PostgreSQL\",\n      \"Redis\"\n    ],\n    \"softwareEngineering\": [\n      \"Agile\",\n      \"Scrum\",\n      \"TDD\",\n      \"Design Patterns\",\n      \"System Design\"\n    ],\n    \"soft_skills\": [\n      \"Leadership\",\n      \"Communication\",\n      \"Problem Solving\",\n      \"Team Collaboration\"\n    ],\n    \"languages\": [\n      \"English (Native)\",\n      \"Spanish (Fluent)\",\n      \"French (Intermediate)\"\n    ]\n  },\n  \"projects\": [\n    {\n      \"name\": \"E-commerce Platform\",\n      \"description\": \"Built a full-stack e-commerce platform with payment integration\",\n      \"technologies\": [\n        \"React\",\n        \"Node.js\",\n        \"MongoDB\",\n        \"Stripe\"\n      ],\n      \"links\": \"https://github.com/johndoe/ecommerce\",\n      \"outcomes\": \"Successfully processed 1000+ transactions\",\n      \"team_size\": \"3\",\n      \"duration\": \"6 months\",\n      \"role\": \"Full Stack Developer\"\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": \"AWS Certified Solutions Architect\",\n      \"issuing_organization\": \"Amazon Web Services\",\n      \"issue_date\": \"2022-03-15\",\n      \"expiry_date\": \"2025-03-15\",\n      \"credential_id\": \"AWS-123456\",\n      \"url\": \"https://aws.amazon.com/certification\"\n    }\n  ],\n  \"awardsAndHonors\": [\n    {\n      \"name\": \"Employee of the Year\",\n      \"organization\": \"Tech Company Inc\",\n      \"date\": \"2023-12-01\",\n      \"description\": \"Recognized for outstanding performance and leadership\"\n    }\n  ],\n  \"publications\": [\n    {\n      \"title\": \"Modern Web Development Practices\",\n      \"journal\": \"Tech Journal\",\n      \"date\": \"2023-06-01\",\n      \"co_authors\": [\"Jane Smith\"],\n      \"doi\": \"10.1000/tech.2023.001\"\n    }\n  ],\n  \"volunteerWork\": [\n    {\n      \"organization\": \"Code for Good\",\n      \"role\": \"Mentor\",\n      \"startDate\": \"2021-01-01\",\n      \"endDate\": \"2023-12-31\",\n      \"responsibilities\": [\n        \"Mentored 20+ junior developers\",\n        \"Organized coding workshops\"\n      ]\n    }\n  ],\n  \"references\": [\n    {\n      \"name\": \"Jane Smith\",\n      \"title\": \"Engineering Manager\",\n      \"company\": \"Tech Company Inc\",\n      \"email\": \"jane.smith@techcompany.com\",\n      \"phone\": \"+1234567891\"\n    }\n  ],\n  \"additionalInformation\": {\n    \"objective\": \"Experienced software engineer seeking challenging opportunities in full-stack development\",\n    \"interests\": [\n      \"Open Source\",\n      \"Machine Learning\",\n      \"Blockchain Technology\"\n    ],\n    \"hobbies\": [\n      \"Hiking\",\n      \"Photography\",\n      \"Reading\"\n    ],\n    \"memberships\": [\n      \"IEEE\",\n      \"ACM\"\n    ]\n  }\n}"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        1488,
-        320
-      ],
-      "id": "8509db0b-39ca-4b65-966f-f817afe38f7f",
-      "name": "Structured Output Parser"
-    }
-  ],
-  "connections": {
-    "Split Out": {
-      "main": [
-        [
-          {
-            "node": "Read/Write Files from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Images": {
-      "main": [
-        [
-          {
-            "node": "Split Out",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     },
     {
       "parameters": {
@@ -830,11 +712,6 @@
     },
     "Basic LLM Chain": {
       "main": [
-        []
-      ]
-    },
-    "Basic LLM Chain": {
-      "main": [
         [
           {
             "node": "Merge1",
@@ -899,17 +776,6 @@
         ]
       ]
     },
-    "Structured Output Parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get many documents": {
       "main": [
         [
@@ -925,6 +791,6 @@
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "7693beb9f060fb055ddcb840a80e799fb74cb4fff1463f01809186570f775489"
+    "instanceId": "041eddc42e8d6ee241e9e999a065d6008656c8550e121b35ce86ff040bc3c386"
   }
 }
