@@ -2,45 +2,6 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "// Enhanced final validation and data consistency check\nreturn $input.all().map(item => {\n  try {\n    if (!item.binary?.file?.data) {\n      throw new Error('Missing binary data');\n    }\n\n    // Log debugging information\n    console.log('Processing file:', item.binary?.file?.fileName);\n    console.log('Binary data type:', typeof item.binary.file.data);\n    console.log('Binary data length:', item.binary.file.data?.length);\n    console.log('MIME type:', item.binary.file.mimeType);\n\n    // Ensure proper binary structure\n    const binaryData = {\n      binary: {\n        file: {\n          ...item.binary.file,\n          mimeType: item.binary.file.mimeType || 'image/png',\n          fileType: 'image',\n          fileExtension: item.binary.file.fileName?.split('.').pop() || 'png',\n          data: item.binary.file.data\n        }\n      },\n      json: {\n        ...item.json,\n        fileName: item.binary.file.fileName,\n        mimeType: item.binary.file.mimeType || 'image/png'\n      }\n    };\n\n    // Validate base64 data\n    if (typeof binaryData.binary.file.data === 'string') {\n      try {\n        Buffer.from(binaryData.binary.file.data, 'base64');\n        console.log('Verified base64 string format');\n      } catch (e) {\n        throw new Error('Invalid base64 data');\n      }\n    } else if (Buffer.isBuffer(binaryData.binary.file.data)) {\n      console.log('Converting Buffer to base64');\n      binaryData.binary.file.data = binaryData.binary.file.data.toString('base64');\n    }\n\n    return binaryData;\n  } catch (error) {\n    console.error('Error processing image:', error);\n    throw error; // Let n8n handle the error\n  }\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2848,
-        704
-      ],
-      "id": "0ccfba19-446c-451d-a27c-c015c6f522a5",
-      "name": "Final Debug before LLM Chain"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Enhanced validation with proper binary structure\nconst validItems = [];\n\n$input.all().forEach((item, index) => {\n  try {\n    // Validate basic structure\n    if (!item?.binary?.file?.data) {\n      console.log(`Skipping item ${index}: Missing binary data`);\n      return;\n    }\n\n    // Ensure binary data is properly formatted\n    const binary = {\n      file: {\n        data: item.binary.file.data,\n        mimeType: item.binary.file.mimeType || 'image/png',\n        fileName: item.binary.file.fileName || `image_${index}.png`,\n        fileExtension: item.binary.file.fileName?.split('.').pop() || 'png'\n      }\n    };\n\n    // Validate data content\n    if (binary.file.data.length === 0) {\n      console.log(`Skipping item ${index}: Empty binary data`);\n      return;\n    }\n\n    // Ensure the data is in base64 format\n    if (Buffer.isBuffer(binary.file.data)) {\n      binary.file.data = binary.file.data.toString('base64');\n    }\n\n    validItems.push({\n      json: {\n        fileName: binary.file.fileName,\n        mimeType: binary.file.mimeType,\n        validation_passed: true,\n        timestamp: new Date().toISOString()\n      },\n      binary\n    });\n\n    console.log(`Item ${index} passed validation - file: ${binary.file.fileName}`);\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n  }\n});\n\nconsole.log(`Filter processed ${$input.all().length} items, returning ${validItems.length} valid items`);\nreturn validItems;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2560,
-        752
-      ],
-      "id": "aeaef913-d89a-4c15-ac9d-9ce9d6ddd606",
-      "name": "Code3"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Fixed Code2 with proper data validation and error handling\nreturn $input.all().map((item, index) => {\n  try {\n    // Validate input structure\n    if (!item || typeof item !== 'object') {\n      console.error(`Item ${index} is not a valid object:`, item);\n      return {\n        json: {\n          error: 'Invalid item structure',\n          original_item: item,\n          processing_timestamp: new Date().toISOString()\n        }\n      };\n    }\n\n    // Ensure json object exists\n    if (!item.json) {\n      item.json = {};\n    }\n\n    // Enhanced binary data handling\n    if (item.binary && item.binary.file && item.binary.file.data) {\n      let processedData = item.binary.file.data;\n      \n      // Convert Buffer to base64 if needed\n      if (Buffer.isBuffer(processedData)) {\n        processedData = processedData.toString('base64');\n      }\n      \n      // Validate base64 string\n      if (typeof processedData === 'string') {\n        try {\n          // Test if it's valid base64\n          Buffer.from(processedData, 'base64');\n        } catch (e) {\n          throw new Error('Invalid base64 data');\n        }\n      }\n      \n      return {\n        json: {\n          ...item.json,\n          original_filename: item.binary.file.fileName || item.json.original_filename || 'document.png',\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: true,\n          binary_data_type: typeof processedData,\n          binary_data_length: processedData.length || 0,\n          data_format: 'base64'\n        },\n        binary: {\n          file: {\n            data: processedData,\n            fileName: item.binary.file.fileName || 'document.png',\n            mimeType: item.binary.file.mimeType || 'image/png'\n          }\n        }\n      };\n    } else {\n      // Return item without binary data but with proper structure\n      return {\n        json: {\n          ...item.json,\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: false,\n          error: 'No valid binary data found'\n        }\n      };\n    }\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n    return {\n      json: {\n        error: error.message,\n        item_index: index,\n        processing_timestamp: new Date().toISOString()\n      }\n    };\n  }\n}).filter(item => item !== null && item !== undefined);"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2032,
-        736
-      ],
-      "id": "58437ef5-1c91-4f27-ac03-a8315cb5f986",
-      "name": "Code2"
-    },
-    {
-      "parameters": {
         "fileSelector": "={{ $json.image_files.replace('./documents', '/documents') }}",
         "options": {
           "dataPropertyName": "file"
@@ -49,10 +10,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
       "position": [
-        1696,
-        32
+        848,
+        -64
       ],
-      "id": "0823989a-029e-4f9a-bd0d-056282a29a46",
+      "id": "95e862ef-e83d-4f5f-9d47-c36978e8d1c5",
       "name": "Read/Write Files from Disk",
       "alwaysOutputData": true
     },
@@ -64,10 +25,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        1456,
-        32
+        608,
+        -64
       ],
-      "id": "1760b010-4b2d-47f6-9979-c238cf608c4b",
+      "id": "c6e687f8-0bb1-4f0d-9619-21919f29672b",
       "name": "Split Out"
     },
     {
@@ -94,10 +55,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1248,
-        32
+        400,
+        -64
       ],
-      "id": "22aaa5a1-2daf-4815-a7a5-a87eb7eb5426",
+      "id": "c5277224-a9a5-475a-a344-5e4e5c5310cd",
       "name": "Extract Images"
     },
     {
@@ -117,10 +78,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        176,
-        176
+        -672,
+        96
       ],
-      "id": "8951e877-f44b-4710-a55f-f8c06790f5be",
+      "id": "073bfebb-1b5c-40a4-96da-5d2ae5168a90",
       "name": "Merge"
     },
     {
@@ -147,13 +108,13 @@
           }
         }
       },
-      "id": "13be7f2a-e783-4f9c-a464-75efccf4f340",
+      "id": "678e3890-d1f1-484c-a14f-8617439ad704",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        832,
-        32
+        -16,
+        -64
       ],
       "alwaysOutputData": false
     },
@@ -259,36 +220,36 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        448,
-        144
+        -400,
+        64
       ],
-      "id": "090cd241-1e23-4e64-88b2-0eb85d888d2d",
+      "id": "2ea163c3-b315-49c8-8a95-cd3c3cf36dc2",
       "name": "Switch1"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "8ed18f1e-76dc-481a-8b12-833eb10320ec",
+      "id": "9e34dcfe-f614-40b3-821d-2861af2a4ebb",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -112,
-        528
+        -960,
+        448
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "010cb973-0c41-4a68-9fa6-09cffc273924",
+      "id": "7ff93279-1642-461a-b1d2-78b8b655c323",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -496,
-        528
+        -1344,
+        448
       ]
     },
     {
@@ -307,10 +268,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -608,
-        160
+        -1456,
+        80
       ],
-      "id": "3a0a65de-438e-4b4f-b3c6-83428f58f186",
+      "id": "0e605e9a-4b01-4a4d-a662-82ed479e353a",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -332,10 +293,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -48,
-        160
+        -896,
+        80
       ],
-      "id": "84874584-218a-4525-b8c9-7e79f10618b8",
+      "id": "c53af63a-5cde-47f4-841a-c1d479540c3c",
       "name": "Edit Fields"
     },
     {
@@ -356,10 +317,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        64,
-        528
+        -784,
+        448
       ],
-      "id": "a84525c2-47ac-40f8-b6fe-ed646763e574",
+      "id": "5e969a18-e418-439d-abea-0811ec8274df",
       "name": "Edit Fields1"
     },
     {
@@ -369,10 +330,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        32
+        -224,
+        -64
       ],
-      "id": "656367bd-2eb9-4e62-809d-7ab22c55f4db",
+      "id": "cf1ea451-fc98-43ff-8be3-338e2cfa70cc",
       "name": "Code",
       "disabled": true
     },
@@ -383,25 +344,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1952,
-        192
+        1104,
+        112
       ],
-      "id": "e387dd4d-2995-44aa-8c10-26a60be28d47",
+      "id": "f26bc64c-2e49-4959-8f1e-acc32a1951db",
       "name": "Code4"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.fullText }}\nDerive name, email, phone number",
+        "text": "={{ $json.fullText }}\n\nExtract ALL available information from this CV/resume and return it as a comprehensive JSON object. Include:\n\n1. **Personal Information**:\n   - Full name, email, phone, address, date of birth, nationality, LinkedIn, website, profile photo\n\n2. **Work Experience**:\n   - Company names, job titles, dates, responsibilities, achievements, technologies used\n\n3. **Education**:\n   - Institutions, degrees, majors, graduation dates, GPA, honors, relevant coursework\n\n4. **Skills**:\n   - Technical skills, programming languages, frameworks, tools, soft skills, languages spoken\n\n5. **Projects**:\n   - Project names, descriptions, technologies, links, outcomes, team size\n\n6. **Certifications**:\n   - Certification names, issuing organizations, dates, expiry dates, credential IDs\n\n7. **Awards & Honors**:\n   - Award names, organizations, dates, descriptions\n\n8. **Publications**:\n   - Paper titles, journals, dates, co-authors, DOI\n\n9. **Volunteer Work**:\n   - Organizations, roles, dates, responsibilities\n\n10. **References**:\n    - Names, titles, companies, contact information\n\n11. **Additional Information**:\n    - Interests, hobbies, memberships, achievements, summary/objective\n\nIMPORTANT: Return ONLY valid JSON with no additional text, markdown formatting, or explanations. Start with { and end with }. Use camelCase for field names. Structure the data logically and preserve all details found in the document.",
+        "hasOutputParser": true,
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2192,
-        192
+        1344,
+        112
       ],
-      "id": "3a85fd22-50a1-4dc9-818f-c5437ec7f11e",
+      "id": "6196c2ad-edbe-411a-a0df-7923e7780cf1",
       "name": "Basic LLM Chain"
     },
     {
@@ -411,14 +373,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        2192,
-        384
+        1344,
+        304
       ],
-      "id": "99f62a35-5c6f-4040-977f-c15c93243560",
+      "id": "dcfbc7a6-efb7-47c3-97ad-c2b69e778241",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
-          "id": "r3VNOqJJuQYe97jA",
+          "id": "ygZ1rEEaZo29cjcm",
           "name": "Groq account"
         }
       }
@@ -432,11 +394,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -592,
-        448
+        -1440,
+        368
       ],
       "typeVersion": 1,
-      "id": "e9b4714c-a333-432a-b8a3-4087654abece",
+      "id": "08422ee2-e6a9-4b08-9dda-68123cf5b43e",
       "name": "Sticky Note"
     },
     {
@@ -447,11 +409,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        576,
-        -48
+        -272,
+        -144
       ],
       "typeVersion": 1,
-      "id": "5fe15e5e-2520-460b-af92-2de6186bea10",
+      "id": "981c3f3f-7a66-4f6c-9f45-5eeb6f8527fa",
       "name": "Sticky Note1"
     },
     {
@@ -462,11 +424,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1600,
-        256
+        752,
+        176
       ],
       "typeVersion": 1,
-      "id": "92e20325-980e-47f8-8c55-033cdf744c07",
+      "id": "7aa813f7-3f57-4889-9236-dd46db828b2b",
       "name": "Sticky Note2"
     },
     {
@@ -478,11 +440,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2144,
-        144
+        1296,
+        64
       ],
       "typeVersion": 1,
-      "id": "bbb63011-e095-410b-83a3-c0f0fd4242e2",
+      "id": "8b868463-a951-4018-8b82-abeba09ca251",
       "name": "Sticky Note3"
     },
     {
@@ -494,11 +456,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1216,
-        -32
+        368,
+        -128
       ],
       "typeVersion": 1,
-      "id": "4780dae6-73cb-4a62-8456-61c07afa6018",
+      "id": "1c1a71fb-af4e-490a-a320-24ba61c7bc59",
       "name": "Sticky Note4"
     },
     {
@@ -509,14 +471,14 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        1664,
-        336
+        816,
+        256
       ],
-      "id": "e9a3b104-cc2c-49ef-8716-7d15c2e3541e",
+      "id": "466db1e1-434f-4723-8011-b505b221ae7e",
       "name": "Extract text",
       "credentials": {
         "mistralCloudApi": {
-          "id": "6kaLWRFBU2afgYKd",
+          "id": "TM0dQDVCdBHABbQq",
           "name": "Mistral Cloud account"
         }
       }
@@ -568,13 +530,13 @@
         },
         "options": {}
       },
-      "id": "ef3c6670-11c3-43c6-b792-e56617a7dcfe",
+      "id": "afd97fda-8901-4b2b-83df-cceba0e465f3",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -320,
-        528
+        -1168,
+        448
       ]
     },
     {
@@ -585,11 +547,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1456,
-        592
+        608,
+        512
       ],
       "typeVersion": 1,
-      "id": "197fc956-249d-46c5-be07-19adb88ab9c6",
+      "id": "b3450a25-13a5-4d65-9609-980f3981f66d",
       "name": "Sticky Note5"
     },
     {
@@ -601,47 +563,33 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        1520,
-        656
+        672,
+        576
       ],
-      "id": "6636f4fd-57ea-45b6-a788-bbe469dcd1aa",
+      "id": "ff9d521d-0ac5-49fa-bb79-0666d8c9d548",
       "name": "Extract text1",
       "credentials": {
         "mistralCloudApi": {
-          "id": "6kaLWRFBU2afgYKd",
+          "id": "TM0dQDVCdBHABbQq",
           "name": "Mistral Cloud account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"personalInformation\": {\n    \"fullName\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+1234567890\",\n    \"address\": \"123 Main Street, City, State 12345\",\n    \"dateOfBirth\": \"1990-01-01\",\n    \"nationality\": \"American\",\n    \"linkedin\": \"linkedin.com/in/johndoe\",\n    \"github\": \"github.com/johndoe\",\n    \"website\": \"https://johndoe.com\",\n    \"profilePhoto\": \"https://example.com/photo.jpg\"\n  },\n  \"workExperience\": [\n    {\n      \"company\": \"Tech Company Inc\",\n      \"jobTitle\": \"Senior Software Engineer\",\n      \"startDate\": \"2020-01-01\",\n      \"endDate\": \"2023-12-31\",\n      \"location\": \"San Francisco, CA\",\n      \"description\": \"Led development of web applications using modern technologies\",\n      \"responsibilities\": [\n        \"Developed and maintained web applications\",\n        \"Led a team of 5 developers\",\n        \"Implemented CI/CD pipelines\"\n      ],\n      \"achievements\": [\n        \"Reduced application load time by 50%\",\n        \"Successfully delivered 10+ major features\"\n      ],\n      \"technologiesUsed\": [\n        \"React\",\n        \"Node.js\",\n        \"Python\",\n        \"AWS\"\n      ]\n    }\n  ],\n  \"education\": [\n    {\n      \"institution\": \"University of Technology\",\n      \"degree\": \"Bachelor of Science in Computer Science\",\n      \"major\": \"Computer Science\",\n      \"graduationDate\": \"2019-05-15\",\n      \"gpa\": \"3.8\",\n      \"honors\": \"Magna Cum Laude\",\n      \"relevantCoursework\": [\n        \"Data Structures and Algorithms\",\n        \"Database Systems\",\n        \"Software Engineering\",\n        \"Web Development\"\n      ],\n      \"location\": \"Boston, MA\"\n    }\n  ],\n  \"skills\": {\n    \"programming\": [\n      \"JavaScript\",\n      \"Python\",\n      \"Java\",\n      \"C++\",\n      \"TypeScript\"\n    ],\n    \"webDevelopment\": [\n      \"React\",\n      \"Node.js\",\n      \"Express.js\",\n      \"HTML/CSS\",\n      \"Bootstrap\"\n    ],\n    \"mobileDevelopment\": [\n      \"React Native\",\n      \"Flutter\",\n      \"iOS Development\"\n    ],\n    \"backendDevelopment\": [\n      \"REST APIs\",\n      \"GraphQL\",\n      \"Microservices\",\n      \"Docker\"\n    ],\n    \"devOps\": [\n      \"AWS\",\n      \"Docker\",\n      \"Kubernetes\",\n      \"CI/CD\",\n      \"Jenkins\"\n    ],\n    \"tools\": [\n      \"Git\",\n      \"VS Code\",\n      \"Postman\",\n      \"JIRA\",\n      \"Figma\"\n    ],\n    \"databases\": [\n      \"MySQL\",\n      \"MongoDB\",\n      \"PostgreSQL\",\n      \"Redis\"\n    ],\n    \"softwareEngineering\": [\n      \"Agile\",\n      \"Scrum\",\n      \"TDD\",\n      \"Design Patterns\",\n      \"System Design\"\n    ],\n    \"soft_skills\": [\n      \"Leadership\",\n      \"Communication\",\n      \"Problem Solving\",\n      \"Team Collaboration\"\n    ],\n    \"languages\": [\n      \"English (Native)\",\n      \"Spanish (Fluent)\",\n      \"French (Intermediate)\"\n    ]\n  },\n  \"projects\": [\n    {\n      \"name\": \"E-commerce Platform\",\n      \"description\": \"Built a full-stack e-commerce platform with payment integration\",\n      \"technologies\": [\n        \"React\",\n        \"Node.js\",\n        \"MongoDB\",\n        \"Stripe\"\n      ],\n      \"links\": \"https://github.com/johndoe/ecommerce\",\n      \"outcomes\": \"Successfully processed 1000+ transactions\",\n      \"team_size\": \"3\",\n      \"duration\": \"6 months\",\n      \"role\": \"Full Stack Developer\"\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": \"AWS Certified Solutions Architect\",\n      \"issuing_organization\": \"Amazon Web Services\",\n      \"issue_date\": \"2022-03-15\",\n      \"expiry_date\": \"2025-03-15\",\n      \"credential_id\": \"AWS-123456\",\n      \"url\": \"https://aws.amazon.com/certification\"\n    }\n  ],\n  \"awardsAndHonors\": [\n    {\n      \"name\": \"Employee of the Year\",\n      \"organization\": \"Tech Company Inc\",\n      \"date\": \"2023-12-01\",\n      \"description\": \"Recognized for outstanding performance and leadership\"\n    }\n  ],\n  \"publications\": [\n    {\n      \"title\": \"Modern Web Development Practices\",\n      \"journal\": \"Tech Journal\",\n      \"date\": \"2023-06-01\",\n      \"co_authors\": [\"Jane Smith\"],\n      \"doi\": \"10.1000/tech.2023.001\"\n    }\n  ],\n  \"volunteerWork\": [\n    {\n      \"organization\": \"Code for Good\",\n      \"role\": \"Mentor\",\n      \"startDate\": \"2021-01-01\",\n      \"endDate\": \"2023-12-31\",\n      \"responsibilities\": [\n        \"Mentored 20+ junior developers\",\n        \"Organized coding workshops\"\n      ]\n    }\n  ],\n  \"references\": [\n    {\n      \"name\": \"Jane Smith\",\n      \"title\": \"Engineering Manager\",\n      \"company\": \"Tech Company Inc\",\n      \"email\": \"jane.smith@techcompany.com\",\n      \"phone\": \"+1234567891\"\n    }\n  ],\n  \"additionalInformation\": {\n    \"objective\": \"Experienced software engineer seeking challenging opportunities in full-stack development\",\n    \"interests\": [\n      \"Open Source\",\n      \"Machine Learning\",\n      \"Blockchain Technology\"\n    ],\n    \"hobbies\": [\n      \"Hiking\",\n      \"Photography\",\n      \"Reading\"\n    ],\n    \"memberships\": [\n      \"IEEE\",\n      \"ACM\"\n    ]\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1488,
+        320
+      ],
+      "id": "8509db0b-39ca-4b65-966f-f817afe38f7f",
+      "name": "Structured Output Parser"
     }
   ],
   "connections": {
-    "Code3": {
-      "main": [
-        [
-          {
-            "node": "Final Debug before LLM Chain",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code2": {
-      "main": [
-        [
-          {
-            "node": "Code3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read/Write Files from Disk": {
-      "main": [
-        []
-      ]
-    },
     "Split Out": {
       "main": [
         [
@@ -800,6 +748,11 @@
         ]
       ]
     },
+    "Basic LLM Chain": {
+      "main": [
+        []
+      ]
+    },
     "Groq Chat Model": {
       "ai_languageModel": [
         [
@@ -843,11 +796,22 @@
           }
         ]
       ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "041eddc42e8d6ee241e9e999a065d6008656c8550e121b35ce86ff040bc3c386"
+    "instanceId": "7693beb9f060fb055ddcb840a80e799fb74cb4fff1463f01809186570f775489"
   }
 }
