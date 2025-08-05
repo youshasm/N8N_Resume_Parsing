@@ -263,7 +263,10 @@
             }
           ]
         },
-        "options": {}
+        "responseMode": "lastNode",
+        "options": {
+          "buttonLabel": "Submit"
+        }
       },
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
@@ -330,10 +333,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -224,
-        -64
+        1024,
+        400
       ],
-      "id": "cf1ea451-fc98-43ff-8be3-338e2cfa70cc",
+      "id": "05850976-f01d-485d-bede-04d2d4a2a300",
       "name": "Code",
       "disabled": true
     },
@@ -344,6 +347,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
+        2352,
+        560
         1104,
         112
       ],
@@ -354,6 +359,7 @@
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.fullText }}\n\nExtract ALL available information from this CV/resume and return it as a comprehensive JSON object. Include:\n\n1. **Personal Information**:\n   - Full name, email, phone, address, date of birth, nationality, LinkedIn, website, profile photo\n\n2. **Work Experience**:\n   - Company names, job titles, dates, responsibilities, achievements, technologies used\n\n3. **Education**:\n   - Institutions, degrees, majors, graduation dates, GPA, honors, relevant coursework\n\n4. **Skills**:\n   - Technical skills, programming languages, frameworks, tools, soft skills, languages spoken\n\n5. **Projects**:\n   - Project names, descriptions, technologies, links, outcomes, team size\n\n6. **Certifications**:\n   - Certification names, issuing organizations, dates, expiry dates, credential IDs\n\n7. **Awards & Honors**:\n   - Award names, organizations, dates, descriptions\n\n8. **Publications**:\n   - Paper titles, journals, dates, co-authors, DOI\n\n9. **Volunteer Work**:\n   - Organizations, roles, dates, responsibilities\n\n10. **References**:\n    - Names, titles, companies, contact information\n\n11. **Additional Information**:\n    - Interests, hobbies, memberships, achievements, summary/objective\n\nIMPORTANT: Return ONLY valid JSON with no additional text, markdown formatting, or explanations. Start with { and end with }. Use camelCase for field names. Structure the data logically and preserve all details found in the document.",
+        "hasOutputParser": true,
         "hasOutputParser": true,
         "batching": {}
       },
@@ -612,6 +618,75 @@
         ]
       ]
     },
+    },
+    {
+      "parameters": {
+        "path": "=a9c831e1-74a4-442a-9bec-f7f97cc331eb",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        64
+      ],
+      "id": "d8b58cd8-6826-4c27-b395-60a5607bb1bd",
+      "name": "Webhook",
+      "webhookId": "a9c831e1-74a4-442a-9bec-f7f97cc331eb"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"name\": \"John Doe\",\n\t\"email\": \"johndoe@unknown.com\",\n  \"city\":\"XYZ\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        752
+      ],
+      "id": "9ad7e908-5d6f-4eee-9249-21a2e4acb18a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "docType": "Job%20Opening",
+        "returnAll": true,
+        "options": {
+          "fields": [
+            "*"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        832,
+        80
+      ],
+      "id": "6734b671-d69b-4fc1-8419-6459f25cfbef",
+      "name": "Get many documents",
+      "credentials": {
+        "erpNextApi": {
+          "id": "bNlyHP0hCgv4Uy7g",
+          "name": "ERPNext account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3200,
+        528
+      ],
+      "id": "e72ca50e-aa65-4a37-a057-ee0abdfb93f5",
+      "name": "Merge1"
+    }
+  ],
+  "connections": {
     "Merge": {
       "main": [
         [
@@ -700,6 +775,11 @@
             "node": "Edit Fields",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Get many documents",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -753,6 +833,17 @@
         []
       ]
     },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
     "Groq Chat Model": {
       "ai_languageModel": [
         [
@@ -803,6 +894,28 @@
           {
             "node": "Basic LLM Chain",
             "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many documents": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
             "index": 0
           }
         ]
