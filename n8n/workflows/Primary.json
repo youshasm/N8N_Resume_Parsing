@@ -2,106 +2,6 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "// Enhanced final validation and data consistency check\nreturn $input.all().map(item => {\n  try {\n    if (!item.binary?.file?.data) {\n      throw new Error('Missing binary data');\n    }\n\n    // Log debugging information\n    console.log('Processing file:', item.binary?.file?.fileName);\n    console.log('Binary data type:', typeof item.binary.file.data);\n    console.log('Binary data length:', item.binary.file.data?.length);\n    console.log('MIME type:', item.binary.file.mimeType);\n\n    // Ensure proper binary structure\n    const binaryData = {\n      binary: {\n        file: {\n          ...item.binary.file,\n          mimeType: item.binary.file.mimeType || 'image/png',\n          fileType: 'image',\n          fileExtension: item.binary.file.fileName?.split('.').pop() || 'png',\n          data: item.binary.file.data\n        }\n      },\n      json: {\n        ...item.json,\n        fileName: item.binary.file.fileName,\n        mimeType: item.binary.file.mimeType || 'image/png'\n      }\n    };\n\n    // Validate base64 data\n    if (typeof binaryData.binary.file.data === 'string') {\n      try {\n        Buffer.from(binaryData.binary.file.data, 'base64');\n        console.log('Verified base64 string format');\n      } catch (e) {\n        throw new Error('Invalid base64 data');\n      }\n    } else if (Buffer.isBuffer(binaryData.binary.file.data)) {\n      console.log('Converting Buffer to base64');\n      binaryData.binary.file.data = binaryData.binary.file.data.toString('base64');\n    }\n\n    return binaryData;\n  } catch (error) {\n    console.error('Error processing image:', error);\n    throw error; // Let n8n handle the error\n  }\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2848,
-        704
-      ],
-      "id": "0ccfba19-446c-451d-a27c-c015c6f522a5",
-      "name": "Final Debug before LLM Chain"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Enhanced validation with proper binary structure\nconst validItems = [];\n\n$input.all().forEach((item, index) => {\n  try {\n    // Validate basic structure\n    if (!item?.binary?.file?.data) {\n      console.log(`Skipping item ${index}: Missing binary data`);\n      return;\n    }\n\n    // Ensure binary data is properly formatted\n    const binary = {\n      file: {\n        data: item.binary.file.data,\n        mimeType: item.binary.file.mimeType || 'image/png',\n        fileName: item.binary.file.fileName || `image_${index}.png`,\n        fileExtension: item.binary.file.fileName?.split('.').pop() || 'png'\n      }\n    };\n\n    // Validate data content\n    if (binary.file.data.length === 0) {\n      console.log(`Skipping item ${index}: Empty binary data`);\n      return;\n    }\n\n    // Ensure the data is in base64 format\n    if (Buffer.isBuffer(binary.file.data)) {\n      binary.file.data = binary.file.data.toString('base64');\n    }\n\n    validItems.push({\n      json: {\n        fileName: binary.file.fileName,\n        mimeType: binary.file.mimeType,\n        validation_passed: true,\n        timestamp: new Date().toISOString()\n      },\n      binary\n    });\n\n    console.log(`Item ${index} passed validation - file: ${binary.file.fileName}`);\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n  }\n});\n\nconsole.log(`Filter processed ${$input.all().length} items, returning ${validItems.length} valid items`);\nreturn validItems;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2560,
-        752
-      ],
-      "id": "aeaef913-d89a-4c15-ac9d-9ce9d6ddd606",
-      "name": "Code3"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Fixed Code2 with proper data validation and error handling\nreturn $input.all().map((item, index) => {\n  try {\n    // Validate input structure\n    if (!item || typeof item !== 'object') {\n      console.error(`Item ${index} is not a valid object:`, item);\n      return {\n        json: {\n          error: 'Invalid item structure',\n          original_item: item,\n          processing_timestamp: new Date().toISOString()\n        }\n      };\n    }\n\n    // Ensure json object exists\n    if (!item.json) {\n      item.json = {};\n    }\n\n    // Enhanced binary data handling\n    if (item.binary && item.binary.file && item.binary.file.data) {\n      let processedData = item.binary.file.data;\n      \n      // Convert Buffer to base64 if needed\n      if (Buffer.isBuffer(processedData)) {\n        processedData = processedData.toString('base64');\n      }\n      \n      // Validate base64 string\n      if (typeof processedData === 'string') {\n        try {\n          // Test if it's valid base64\n          Buffer.from(processedData, 'base64');\n        } catch (e) {\n          throw new Error('Invalid base64 data');\n        }\n      }\n      \n      return {\n        json: {\n          ...item.json,\n          original_filename: item.binary.file.fileName || item.json.original_filename || 'document.png',\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: true,\n          binary_data_type: typeof processedData,\n          binary_data_length: processedData.length || 0,\n          data_format: 'base64'\n        },\n        binary: {\n          file: {\n            data: processedData,\n            fileName: item.binary.file.fileName || 'document.png',\n            mimeType: item.binary.file.mimeType || 'image/png'\n          }\n        }\n      };\n    } else {\n      // Return item without binary data but with proper structure\n      return {\n        json: {\n          ...item.json,\n          processing_timestamp: new Date().toISOString(),\n          has_binary_data: false,\n          error: 'No valid binary data found'\n        }\n      };\n    }\n  } catch (error) {\n    console.error(`Error processing item ${index}:`, error.message);\n    return {\n      json: {\n        error: error.message,\n        item_index: index,\n        processing_timestamp: new Date().toISOString()\n      }\n    };\n  }\n}).filter(item => item !== null && item !== undefined);"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2032,
-        736
-      ],
-      "id": "58437ef5-1c91-4f27-ac03-a8315cb5f986",
-      "name": "Code2"
-    },
-    {
-      "parameters": {
-        "fileSelector": "={{ $json.image_files.replace('./documents', '/documents') }}",
-        "options": {
-          "dataPropertyName": "file"
-        }
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        1696,
-        32
-      ],
-      "id": "0823989a-029e-4f9a-bd0d-056282a29a46",
-      "name": "Read/Write Files from Disk",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "image_files",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        1456,
-        32
-      ],
-      "id": "1760b010-4b2d-47f6-9979-c238cf608c4b",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://imp-fastapi:8000/api/documents/extract-images",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "file"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {}
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1248,
-        32
-      ],
-      "id": "22aaa5a1-2daf-4815-a7a5-a87eb7eb5426",
-      "name": "Extract Images"
-    },
-    {
-      "parameters": {
         "mode": "combine",
         "advanced": true,
         "mergeByFields": {
@@ -117,10 +17,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        176,
-        176
+        576,
+        544
       ],
-      "id": "8951e877-f44b-4710-a55f-f8c06790f5be",
+      "id": "4c2974b8-2e94-41fa-8a93-2b9e25e57b1c",
       "name": "Merge"
     },
     {
@@ -147,13 +47,13 @@
           }
         }
       },
-      "id": "13be7f2a-e783-4f9c-a464-75efccf4f340",
+      "id": "84d5f768-8448-44a6-ba93-c95d739d7218",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        832,
-        32
+        1232,
+        400
       ],
       "alwaysOutputData": false
     },
@@ -259,36 +159,36 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        448,
-        144
+        848,
+        512
       ],
-      "id": "090cd241-1e23-4e64-88b2-0eb85d888d2d",
+      "id": "0d8e277a-c97d-44b7-b9b4-661d100ab515",
       "name": "Switch1"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "8ed18f1e-76dc-481a-8b12-833eb10320ec",
+      "id": "4586f84d-2384-4691-bee2-dbf47e6dc549",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -112,
-        528
+        288,
+        896
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "010cb973-0c41-4a68-9fa6-09cffc273924",
+      "id": "7467eefa-94b3-4874-9d06-1ca8ba5ac9d1",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -496,
-        528
+        -96,
+        896
       ]
     },
     {
@@ -302,15 +202,18 @@
             }
           ]
         },
-        "options": {}
+        "responseMode": "lastNode",
+        "options": {
+          "buttonLabel": "Submit"
+        }
       },
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -608,
-        160
+        -208,
+        528
       ],
-      "id": "3a0a65de-438e-4b4f-b3c6-83428f58f186",
+      "id": "2349246b-1335-4343-8dd8-6e0fd828ec0f",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -332,10 +235,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -48,
-        160
+        352,
+        528
       ],
-      "id": "84874584-218a-4525-b8c9-7e79f10618b8",
+      "id": "f3120800-d70f-4ee6-8c37-f18c178f6c5b",
       "name": "Edit Fields"
     },
     {
@@ -356,10 +259,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        64,
-        528
+        464,
+        896
       ],
-      "id": "a84525c2-47ac-40f8-b6fe-ed646763e574",
+      "id": "5eec4b3c-6d11-4765-adc8-47cb0084b9a0",
       "name": "Edit Fields1"
     },
     {
@@ -369,10 +272,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        32
+        1024,
+        400
       ],
-      "id": "656367bd-2eb9-4e62-809d-7ab22c55f4db",
+      "id": "05850976-f01d-485d-bede-04d2d4a2a300",
       "name": "Code",
       "disabled": true
     },
@@ -383,25 +286,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1952,
-        192
+        2352,
+        560
       ],
-      "id": "e387dd4d-2995-44aa-8c10-26a60be28d47",
+      "id": "f9f571e6-5c14-479e-a97b-a1b34f48cf18",
       "name": "Code4"
     },
     {
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.fullText }}\nDerive name, email, phone number",
+        "hasOutputParser": true,
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2192,
-        192
+        2592,
+        560
       ],
-      "id": "3a85fd22-50a1-4dc9-818f-c5437ec7f11e",
+      "id": "8d07cfa0-5caf-4927-ac3c-0119686298fa",
       "name": "Basic LLM Chain"
     },
     {
@@ -411,10 +315,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        2192,
-        384
+        2592,
+        752
       ],
-      "id": "99f62a35-5c6f-4040-977f-c15c93243560",
+      "id": "58e39e98-e4b7-4594-9350-8e53f3ccbd83",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -432,11 +336,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -592,
-        448
+        -192,
+        816
       ],
       "typeVersion": 1,
-      "id": "e9b4714c-a333-432a-b8a3-4087654abece",
+      "id": "dde45d9b-79d6-4593-8b3d-230fe6957021",
       "name": "Sticky Note"
     },
     {
@@ -447,11 +351,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        576,
-        -48
+        976,
+        320
       ],
       "typeVersion": 1,
-      "id": "5fe15e5e-2520-460b-af92-2de6186bea10",
+      "id": "0902a002-d73b-4578-996e-b292129ddea9",
       "name": "Sticky Note1"
     },
     {
@@ -462,11 +366,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1600,
-        256
+        2000,
+        624
       ],
       "typeVersion": 1,
-      "id": "92e20325-980e-47f8-8c55-033cdf744c07",
+      "id": "5a177584-8fac-4ad2-84e2-60e705f759ff",
       "name": "Sticky Note2"
     },
     {
@@ -478,28 +382,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2144,
-        144
+        2544,
+        512
       ],
       "typeVersion": 1,
-      "id": "bbb63011-e095-410b-83a3-c0f0fd4242e2",
+      "id": "05d30ffe-adbd-4f9b-b408-2be13f3345f6",
       "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "content": "## Preprocessing",
-        "height": 240,
-        "width": 624,
-        "color": 2
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1216,
-        -32
-      ],
-      "typeVersion": 1,
-      "id": "4780dae6-73cb-4a62-8456-61c07afa6018",
-      "name": "Sticky Note4"
     },
     {
       "parameters": {
@@ -509,10 +397,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        1664,
-        336
+        2064,
+        704
       ],
-      "id": "e9a3b104-cc2c-49ef-8716-7d15c2e3541e",
+      "id": "c2dcdc6b-5632-4a1c-9729-a90ca1650cc8",
       "name": "Extract text",
       "credentials": {
         "mistralCloudApi": {
@@ -568,13 +456,13 @@
         },
         "options": {}
       },
-      "id": "ef3c6670-11c3-43c6-b792-e56617a7dcfe",
+      "id": "90b993c7-0cb7-4c58-b0e5-1803eec23ddb",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -320,
-        528
+        80,
+        896
       ]
     },
     {
@@ -585,11 +473,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1456,
-        592
+        1856,
+        960
       ],
       "typeVersion": 1,
-      "id": "197fc956-249d-46c5-be07-19adb88ab9c6",
+      "id": "c82e1177-7092-4883-a549-b08fa26adfb7",
       "name": "Sticky Note5"
     },
     {
@@ -601,10 +489,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        1520,
-        656
+        1920,
+        1024
       ],
-      "id": "6636f4fd-57ea-45b6-a788-bbe469dcd1aa",
+      "id": "8bfbb101-3e3a-4601-b2ec-9651dc312bdf",
       "name": "Extract text1",
       "credentials": {
         "mistralCloudApi": {
@@ -612,58 +500,75 @@
           "name": "Mistral Cloud account"
         }
       }
+    },
+    {
+      "parameters": {
+        "path": "=a9c831e1-74a4-442a-9bec-f7f97cc331eb",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        64
+      ],
+      "id": "d8b58cd8-6826-4c27-b395-60a5607bb1bd",
+      "name": "Webhook",
+      "webhookId": "a9c831e1-74a4-442a-9bec-f7f97cc331eb"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"name\": \"John Doe\",\n\t\"email\": \"johndoe@unknown.com\",\n  \"city\":\"XYZ\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        752
+      ],
+      "id": "9ad7e908-5d6f-4eee-9249-21a2e4acb18a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "docType": "Job%20Opening",
+        "returnAll": true,
+        "options": {
+          "fields": [
+            "*"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        832,
+        80
+      ],
+      "id": "6734b671-d69b-4fc1-8419-6459f25cfbef",
+      "name": "Get many documents",
+      "credentials": {
+        "erpNextApi": {
+          "id": "bNlyHP0hCgv4Uy7g",
+          "name": "ERPNext account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3200,
+        528
+      ],
+      "id": "e72ca50e-aa65-4a37-a057-ee0abdfb93f5",
+      "name": "Merge1"
     }
   ],
   "connections": {
-    "Code3": {
-      "main": [
-        [
-          {
-            "node": "Final Debug before LLM Chain",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code2": {
-      "main": [
-        [
-          {
-            "node": "Code3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read/Write Files from Disk": {
-      "main": [
-        []
-      ]
-    },
-    "Split Out": {
-      "main": [
-        [
-          {
-            "node": "Read/Write Files from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Images": {
-      "main": [
-        [
-          {
-            "node": "Split Out",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Merge": {
       "main": [
         [
@@ -752,6 +657,11 @@
             "node": "Edit Fields",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Get many documents",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -800,6 +710,17 @@
         ]
       ]
     },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
     "Groq Chat Model": {
       "ai_languageModel": [
         [
@@ -838,6 +759,28 @@
         [
           {
             "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many documents": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
