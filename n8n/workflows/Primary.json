@@ -711,6 +711,90 @@
       ],
       "id": "cd088485-8fbe-4cf5-a5bc-c6c27e407840",
       "name": "Code1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "docType": "Designation",
+        "returnAll": true,
+        "options": {
+          "fields": [
+            "designation_name"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -144
+      ],
+      "id": "fc6951f4-a850-4d28-bb0a-fb9f7a948e3a",
+      "name": "Get many documents",
+      "credentials": {
+        "erpNextApi": {
+          "id": "bNlyHP0hCgv4Uy7g",
+          "name": "ERPNext account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3104,
+        0
+      ],
+      "id": "e2a730ab-6d0a-49f3-b0d2-6b508e5aea40",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        4048,
+        208
+      ],
+      "id": "88a30854-73de-4d97-b86c-0b2ea992fe76",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "r3VNOqJJuQYe97jA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine applicant data and designation names into a single object and assign all data to a variable\n\nconst input = $input.all().map(item => item.json);\n\n// Find the applicant object (has more than just designation_name)\nconst applicant = input.find(obj => !obj.designation_name);\n\n// Collect all designation names into an array\nconst designations = input\n  .filter(obj => obj.designation_name)\n  .map(obj => obj.designation_name);\n\n// Add the designations array to the applicant object\nlet result;\nif (applicant) {\n  applicant.designation_list = designations;\n  result = applicant;\n} else {\n  result = { designation_list: designations };\n}\n\n// Assign all data to a variable 'text' for LLM\nconst text = JSON.stringify(result);\n\nreturn [{ json: { ...result, text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3312,
+        0
+      ],
+      "id": "c0660fed-9416-4183-8af1-745340c3e468",
+      "name": "Combine Designations and Candidate Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Match the experience , educations, skills with the designation_list and describe which designation will be best {{ $json.text }}\nScore from 0-100% for each deisgnation\nOutput in a brief list format such as designation:score\ndo not add any extra information or markdown or comments\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        4032,
+        -16
+      ],
+      "id": "0026cd72-6b5e-4b70-af9f-0bb2f89bdb34",
+      "name": "Designation Scorer"
     }
   ],
   "connections": {
@@ -828,6 +912,11 @@
           },
           {
             "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many documents",
             "type": "main",
             "index": 0
           }
@@ -969,11 +1058,60 @@
       "main": [
         [
           {
-            "node": "Create a document",
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Get many documents": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Combine Designations and Candidate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Designation Scorer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Designations and Candidate Data": {
+      "main": [
+        [
+          {
+            "node": "Designation Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Designation Scorer": {
+      "main": [
+        []
       ]
     }
   },
