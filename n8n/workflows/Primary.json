@@ -1,27 +1,16 @@
 {
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -288,
-        304
-      ],
-      "id": "9bf5bb81-5663-483d-8410-f14fb1263dbb",
-      "name": "Merge1"
-    },
-    {
       "parameters": {
-        "jsonSchemaExample": "{\n\t\"name\": \"John Doe\",\n\t\"email\": \"johndoe@unknown.com\",\n  \"mobile1\":\"+923152424467\",\n  \"mobile2\":\"+923152424469\",\n  \"skills\":\"abab\"\n}"
+        "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        -688,
-        544
+        -656,
+        16
       ],
-      "id": "929a0dda-8162-4e49-a879-f6068b165654",
+      "id": "ad6e2487-cf96-42d5-8cf6-9d58b97533d1",
       "name": "Structured Output Parser"
     },
     {
@@ -33,10 +22,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        -1568,
-        816
+        -2528,
+        288
       ],
-      "id": "4590269b-f718-4125-84e8-1e926bef52d3",
+      "id": "7a798d52-863f-460d-9725-a97bcefb9c9f",
       "name": "Extract text1",
       "credentials": {
         "mistralCloudApi": {
@@ -53,11 +42,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1632,
-        752
+        -2592,
+        224
       ],
       "typeVersion": 1,
-      "id": "7b201bb4-409d-4ecb-9014-d8afda589caa",
+      "id": "82809bfb-4321-4d92-b7d1-e1bba726b68a",
       "name": "Sticky Note5"
     },
     {
@@ -107,13 +96,13 @@
         },
         "options": {}
       },
-      "id": "9459acad-ada4-40ef-ad4d-259687cbe5b3",
+      "id": "d2310e53-98bf-4140-bafd-2f365564807a",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -3424,
-        688
+        -4400,
+        160
       ]
     },
     {
@@ -124,10 +113,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        -1424,
-        480
+        -2384,
+        -128
       ],
-      "id": "10621fba-469a-4a61-8614-e4db3cef9ea6",
+      "id": "b72b8e40-78e6-4d31-b96b-45aa9880118a",
       "name": "Extract text",
       "credentials": {
         "mistralCloudApi": {
@@ -145,11 +134,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -944,
-        288
+        -912,
+        -336
       ],
       "typeVersion": 1,
-      "id": "31265d42-c068-4f12-9620-027faa0875b0",
+      "id": "c72702f9-83a4-47f0-a5a6-5171a61ff48c",
       "name": "Sticky Note3"
     },
     {
@@ -160,11 +149,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1488,
-        400
+        -2448,
+        -208
       ],
       "typeVersion": 1,
-      "id": "6a161aae-918f-42f8-b6d1-ea247baf0738",
+      "id": "907b21e4-f87d-4e5e-b0c1-17ce2d39d831",
       "name": "Sticky Note2"
     },
     {
@@ -175,11 +164,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2528,
-        96
+        -3504,
+        -512
       ],
       "typeVersion": 1,
-      "id": "7819f58c-cd70-4d63-8c8b-c0def603437b",
+      "id": "4d05d716-f45e-4fff-b3f9-b7c9afbcc34a",
       "name": "Sticky Note1"
     },
     {
@@ -191,11 +180,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3696,
-        608
+        -4672,
+        80
       ],
       "typeVersion": 1,
-      "id": "d8e350b9-a56b-43c3-bf2c-e1c86e171eba",
+      "id": "910df7f4-904a-48f0-8f88-14af4cd9dbf4",
       "name": "Sticky Note"
     },
     {
@@ -206,10 +195,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        -896,
-        544
+        -864,
+        16
       ],
-      "id": "72ba4aa3-d0e8-4400-977a-fac94971abab",
+      "id": "7a2594c8-e9f4-4845-94d8-439ae3e83eec",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -221,17 +210,16 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.fullText }}\nderive the name, email, skills,mobile number from this text\nif there is no email then set it as no_email@placeholder.com",
-        "hasOutputParser": true,
+        "text": "=Extract job applicant information from this text into a structured JSON format. \nYou must return a valid JSON object with a single \"output\" key, and all the following fields:\n\n{{ $json.fieldnames.join(', ') }}\n\nText to analyze:\n{{ $json.fullText }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key.\n- The \"output\" object MUST contain ALL the fields listed above, no more, no less.\n- Field-specific formats:\n   - Names: CAPS as shown in document\n   - Dates: YYYY-MM-DD format only (e.g., \"2025-08-06\")\n   - Phone/mobile: Include country code if present (e.g., \"+1 123-456-7890\")\n   - Email: Must be valid email format\n   - Skills/Languages: Must be arrays (e.g., [\"Skill1\", \"Skill2\"] or [])\n   - IDs (passport, etc.): Exact format as written\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: \"Not Provided\"\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n\nIMPORTANT: Your response must be valid JSON that can be parsed.Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'. Do not include any text before or after the JSON.\n",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        -896,
-        336
+        -864,
+        -272
       ],
-      "id": "e086d660-9dd4-46fc-87d2-b329aa4b2260",
+      "id": "2c1ebd15-dcc1-47b3-bafd-0e928ff0c327",
       "name": "Basic LLM Chain"
     },
     {
@@ -241,10 +229,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        336
+        -2096,
+        -272
       ],
-      "id": "428a07d5-7e10-4aa6-8240-cc1ce7b92301",
+      "id": "791a4732-2334-4ac5-a96d-9c60b730c0ef",
       "name": "Code4"
     },
     {
@@ -254,10 +242,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2480,
-        176
+        -3456,
+        -432
       ],
-      "id": "0e8083ac-f21d-4f9c-a023-33e9d7e324cd",
+      "id": "29ce66be-7fc9-4c36-a6a4-0b815df3dc46",
       "name": "Code",
       "disabled": true
     },
@@ -279,10 +267,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3040,
-        688
+        -4016,
+        160
       ],
-      "id": "fdd31b85-6588-4560-b8d4-4fb4945391c0",
+      "id": "787420ac-b2be-43a5-8021-ee1d5c38fe56",
       "name": "Edit Fields1"
     },
     {
@@ -303,10 +291,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3152,
-        304
+        -4128,
+        -304
       ],
-      "id": "713821bd-dd7e-4621-bc35-2027667a66c3",
+      "id": "0f20efb0-61c1-46d4-a1d2-88e17770aee3",
       "name": "Edit Fields"
     },
     {
@@ -328,10 +316,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -3712,
-        304
+        -4688,
+        -304
       ],
-      "id": "f8c105db-ed40-453a-904c-8da000b15b1f",
+      "id": "34fa25f6-2ec6-4ad9-ab2e-060852a4da2c",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -339,26 +327,26 @@
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "d1e51580-9b3f-4a1a-8264-c1c950492c4c",
+      "id": "0e633755-ba32-487e-8efe-37e81e37e108",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3600,
-        688
+        -4576,
+        160
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "2470d103-0bae-408e-a6b1-47da4d579a9a",
+      "id": "9f93cb4e-27f7-4b86-9d47-0fcc2c3c1ce3",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3216,
-        688
+        -4192,
+        160
       ]
     },
     {
@@ -463,10 +451,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -2656,
-        288
+        -3632,
+        -320
       ],
-      "id": "d5ed56ec-0c51-4650-96ae-99294d9583fe",
+      "id": "54b802ee-8d2b-48bd-8a4d-d387eb221e82",
       "name": "Switch1"
     },
     {
@@ -493,13 +481,13 @@
           }
         }
       },
-      "id": "6ccb1b3e-7319-4f08-a317-f87eeec32855",
+      "id": "9332ff92-a966-48de-a089-0612734743b3",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -2272,
-        176
+        -3248,
+        -432
       ],
       "alwaysOutputData": false
     },
@@ -520,10 +508,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -2928,
-        320
+        -3904,
+        -288
       ],
-      "id": "48e26c1f-eaf7-4773-834a-3c6ac4ed6231",
+      "id": "85130cab-36ab-4a98-ac70-06f65111d7e9",
       "name": "Merge"
     },
     {
@@ -533,11 +521,11 @@
           "customProperty": [
             {
               "field": "applicant_name",
-              "value": "={{ $json.output ? $json.output.name : 'Unknown Applicant' }}"
+              "value": "={{ $json.applicant_name }}"
             },
             {
               "field": "email_id",
-              "value": "={{ $json.output ? $json.output.email : 'no_email@placeholder.com' }}"
+              "value": "={{ $json.email_id }}"
             },
             {
               "field": "status",
@@ -549,11 +537,11 @@
             },
             {
               "field": "skills",
-              "value": "={{ $json.output ? ($json.output.skills || 'Not Specified') : 'Not Specified' }}"
+              "value": "={{ $json.skills }}"
             },
             {
               "field": "mobile_number_1",
-              "value": "={{ $json.output ? ($json.output.mobile1 || 'Not Provided') : 'Not Provided' }}"
+              "value": "={{ $json.mobile_number_1 }}"
             }
           ]
         }
@@ -561,10 +549,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        -80,
-        304
+        160,
+        -304
       ],
-      "id": "3ab6c030-ecd8-43a1-8349-dfe8fef42a37",
+      "id": "4ed7656f-53b4-44be-b551-51f4f2ab399a",
       "name": "Create a document",
       "credentials": {
         "erpNextApi": {
@@ -580,39 +568,26 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2500,
-        -176
+        -3472,
+        -784
       ],
       "name": "Get Field Names",
-      "id": "25e3bc04-df43-4991-976f-5d54389e6854"
+      "id": "068e8770-c897-4c6e-9df5-f1166e1e790a"
     },
     {
       "parameters": {
         "url": "https://app.alphaworkforce.org/api/method/frappe.desk.form.load.getdoctype?doctype=Job%20Applicant",
-        "method": "GET",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "erpNextApi",
-        "headers": {
-          "parameters": [
-            {
-              "name": "Accept",
-              "value": "application/json"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -2704,
-        -176
+        -3680,
+        -784
       ],
-      "id": "eb619632-b434-4c14-9802-c62116b7e607",
+      "id": "3f9b56a1-dcad-4a30-b898-0ed89890100f",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
@@ -620,29 +595,68 @@
           "name": "ERPNext account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items from both input branches\nconst items = $input.all();\n\n// Initialize the combined data object\nlet combinedData = {\n    fieldnames: [],\n    fullText: ''\n};\n\n// Process each item\nfor (const item of items) {\n    // If the item has fieldnames, store them\n    if (item.json.fieldnames && Array.isArray(item.json.fieldnames)) {\n        combinedData.fieldnames = item.json.fieldnames;\n    }\n    // If the item has fullText, store it\n    if (item.json.fullText) {\n        combinedData.fullText = item.json.fullText;\n    }\n}\n\n// Return the combined data\nreturn [{ json: combinedData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        -272
+      ],
+      "id": "e4ecff4c-3094-4537-a618-77c483932d59",
+      "name": "Combine Data"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1760,
+        -272
+      ],
+      "id": "20260083-6326-41c5-87e7-3c5e0a684733",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        224
+      ],
+      "id": "e56d7137-b19b-40d2-8495-c8f3175d8e39",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "r3VNOqJJuQYe97jA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node after Basic LLM Chain\n\nconst items = $input.all();\nconst outputItems = [];\n\nfunction removeCountryCode(phone) {\n  if (typeof phone !== 'string') return phone;\n  // Remove country code patterns like +92-, +1-, etc.\n  return phone.replace(/^\\+\\d{1,3}[-\\s]?/, '');\n}\n\nfor (const item of items) {\n  let rawText = item.json.text;\n  // Remove \\n and extra spaces\n  rawText = rawText.replace(/\\\\n/g, '');\n  let parsed;\n  try {\n    parsed = JSON.parse(rawText);\n  } catch (e) {\n    try {\n      parsed = JSON.parse(rawText.trim());\n    } catch (err) {\n      parsed = { output: {} };\n    }\n  }\n  if (parsed && parsed.output) {\n    // Convert skills array to comma-separated string if present\n    if (Array.isArray(parsed.output.skills)) {\n      parsed.output.skills = parsed.output.skills.join(', ');\n    }\n    // Remove country code from mobile numbers\n    if (parsed.output.mobile_number_1) {\n      parsed.output.mobile_number_1 = removeCountryCode(parsed.output.mobile_number_1);\n    }\n    if (parsed.output.mobile_number_2) {\n      parsed.output.mobile_number_2 = removeCountryCode(parsed.output.mobile_number_2);\n    }\n    if (parsed.output.phone_number) {\n      parsed.output.phone_number = removeCountryCode(parsed.output.phone_number);\n    }\n    outputItems.push({ json: parsed.output });\n  } else {\n    outputItems.push({ json: {} });\n  }\n}\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -272
+      ],
+      "id": "f82cb8ed-de2e-436b-a56c-1ab84367f780",
+      "name": "Code1"
     }
   ],
   "connections": {
-    "Merge1": {
-      "main": [
-        [
-          {
-            "node": "Create a document",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Structured Output Parser": {
       "ai_outputParser": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Extract text1": {
@@ -693,7 +707,7 @@
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -704,7 +718,7 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Merge2",
             "type": "main",
             "index": 0
           }
@@ -841,6 +855,17 @@
         ]
       ]
     },
+    "Get Field Names": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
     "HTTP Request": {
       "main": [
         [
@@ -852,13 +877,46 @@
         ]
       ]
     },
-    "Get Field Names": {
+    "Combine Data": {
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "Basic LLM Chain",
             "type": "main",
-            "index": 1
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Combine Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
