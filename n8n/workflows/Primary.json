@@ -2,19 +2,6 @@
   "nodes": [
     {
       "parameters": {
-        "autoFix": true
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        2688,
-        928
-      ],
-      "id": "0d87b521-2da9-4694-9639-20351d806412",
-      "name": "Structured Output Parser"
-    },
-    {
-      "parameters": {
         "documentType": "image_url",
         "binaryProperty": "file",
         "options": {}
@@ -22,10 +9,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        816,
-        1200
+        -6656,
+        1136
       ],
-      "id": "557c8e0b-ff6e-4b18-9e4a-99903f3cd701",
+      "id": "cf283879-a2bf-4baa-b011-e11a9a1cf14e",
       "name": "Extract text1",
       "credentials": {
         "mistralCloudApi": {
@@ -42,11 +29,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        752,
-        1136
+        -6720,
+        1072
       ],
       "typeVersion": 1,
-      "id": "273e7d42-899c-42a7-95f2-e5a3e3fc4fbe",
+      "id": "4e6775aa-115f-4270-a461-ab334bd3eda9",
       "name": "Sticky Note5"
     },
     {
@@ -96,13 +83,13 @@
         },
         "options": {}
       },
-      "id": "3b72d09f-2e7b-4d5c-adc0-58d74d69fd08",
+      "id": "75a0477c-2ba7-44bf-8d7e-d0181d22468a",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -1056,
-        1072
+        -8528,
+        1008
       ]
     },
     {
@@ -113,10 +100,10 @@
       "type": "n8n-nodes-base.mistralAi",
       "typeVersion": 1,
       "position": [
-        960,
-        784
+        -6512,
+        688
       ],
-      "id": "fb71479e-42d0-4c02-b64a-e67d8a854813",
+      "id": "c61bcb18-8195-4f5d-8c98-a14e7ebeff00",
       "name": "Extract text",
       "credentials": {
         "mistralCloudApi": {
@@ -134,11 +121,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2432,
-        576
+        -5040,
+        480
       ],
       "typeVersion": 1,
-      "id": "3488f090-449a-41bc-ae87-e12dd80d20d5",
+      "id": "639e3a57-4276-41c2-83a8-f760dd0e3af4",
       "name": "Sticky Note3"
     },
     {
@@ -149,11 +136,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        896,
-        704
+        -6576,
+        608
       ],
       "typeVersion": 1,
-      "id": "03c4089d-597a-437d-ab4b-c5f39f9c723f",
+      "id": "6b17ef45-2449-4a9f-a895-54a6c191de6d",
       "name": "Sticky Note2"
     },
     {
@@ -164,11 +151,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -160,
-        400
+        -7632,
+        304
       ],
       "typeVersion": 1,
-      "id": "22301f1a-a857-46d4-928c-7df19bd91022",
+      "id": "48d05448-10b2-4f7e-8a9f-c609540a6b40",
       "name": "Sticky Note1"
     },
     {
@@ -180,11 +167,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1328,
-        992
+        -8800,
+        928
       ],
       "typeVersion": 1,
-      "id": "9f02c2fc-fa4f-416f-a0f9-eb8199b3abbf",
+      "id": "f73b583c-cb70-47d9-80c2-2f15413acbf6",
       "name": "Sticky Note"
     },
     {
@@ -195,10 +182,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        2480,
-        928
+        -4992,
+        864
       ],
-      "id": "0c4f03de-cb46-4109-a010-513ee852b746",
+      "id": "e83d3074-66aa-4a2a-a310-58b482696ed0",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -209,30 +196,15 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=Extract job applicant information from this text into a structured JSON format. \nYou must return a valid JSON object with a single \"output\" key, and all the following fields:\n\n{{ $json.fieldnames.join(', ') }}\n\nText to analyze:\n{{ $json.fullText }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key.\n- The \"output\" object MUST contain ALL the fields listed above, no more, no less.\n- Field-specific formats:\n   - Dates: YYYY-MM-DD format only\n   - Phone/mobile: Include country code if present (e.g., \"+1 123-456-7890\")\n   - Email: Must be valid email format\n   - Skills/Languages: Must be arrays (e.g., [\"Skill1\", \"Skill2\"] or [])\n   - IDs (passport, etc.): without dashes\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: \"Not Provided\"\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n\nIMPORTANT: Your response must be valid JSON that can be parsed.Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'. Do not include any text before or after the JSON.\n",
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.7,
-      "position": [
-        2480,
-        640
-      ],
-      "id": "42c90bb8-abf8-40a7-a393-8b2d92d5ce8b",
-      "name": "Basic LLM Chain"
-    },
-    {
-      "parameters": {
         "jsCode": "// Aggregate all OCR results into a single string\nlet allText = $input.all()\n  .map(item => item.json.extractedText || \"\")\n  .join(\"\\n\\n---\\n\\n\"); // separator between pages\n\nreturn [{\n  json: {\n    fullText: allText\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        640
+        -6224,
+        544
       ],
-      "id": "0587692c-1dcf-42ad-836a-eda369a2d09d",
+      "id": "b480fc6e-9e3b-490f-a296-4778d2d2a009",
       "name": "Code4"
     },
     {
@@ -242,10 +214,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -112,
-        480
+        -7584,
+        384
       ],
-      "id": "2c5cdbbf-60f4-4171-90cc-e2484e45509a",
+      "id": "d775e236-046f-4143-9f0f-f0fee0ce512b",
       "name": "Code",
       "disabled": true
     },
@@ -267,10 +239,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -672,
-        1072
+        -8144,
+        1008
       ],
-      "id": "0bcbbeb0-e23e-4677-829d-fd8f7e87a364",
+      "id": "fe207a44-229e-4bbd-8dc5-e1a7a27ab8b1",
       "name": "Edit Fields1"
     },
     {
@@ -291,10 +263,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -784,
-        608
+        -8256,
+        512
       ],
-      "id": "8f12ddaf-97cf-4d8c-a5e7-596fe18f183b",
+      "id": "ff550f0a-4582-4a7e-a10d-29e63f36156e",
       "name": "Edit Fields"
     },
     {
@@ -316,10 +288,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -1344,
-        608
+        -8816,
+        512
       ],
-      "id": "c847b489-2b95-49e9-a9f3-85f0162a6a5d",
+      "id": "db7dfee2-e15d-4ebb-b9e6-541e88a8d5fc",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -327,26 +299,26 @@
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "c4929290-c92c-45f9-80c7-8eef56d533b0",
+      "id": "b4020c8f-cc1a-4103-935d-4b18e0646f88",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1232,
-        1072
+        -8704,
+        1008
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "fcd91a3e-93bf-4551-ba18-d3fc3cf9f323",
+      "id": "a6515052-3fc6-49b4-8238-19d4e4a5833f",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -848,
-        1072
+        -8320,
+        1008
       ]
     },
     {
@@ -451,10 +423,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -288,
-        592
+        -7760,
+        496
       ],
-      "id": "d3b70a05-bd1a-4b66-9187-3ea4c25cf449",
+      "id": "e3a1bd5f-a200-4d47-ab4d-3c5094c05ead",
       "name": "Switch1"
     },
     {
@@ -481,13 +453,13 @@
           }
         }
       },
-      "id": "0f7090b7-4b9b-4182-90b0-baf27d2567d4",
+      "id": "f68380d3-ba85-47e4-a12b-727064cc718e",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        96,
-        480
+        -7376,
+        384
       ],
       "alwaysOutputData": false
     },
@@ -508,10 +480,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -560,
-        624
+        -8032,
+        528
       ],
-      "id": "4d875a0b-a2d4-4c84-a95c-52ec272b3357",
+      "id": "4be7f51a-2139-46eb-a8fb-85be2d79d5b3",
       "name": "Merge"
     },
     {
@@ -584,14 +556,6 @@
               "value": "={{ $json.sect }}"
             },
             {
-              "field": "mobile_number_1",
-              "value": "={{ $json.mobile_number_1 }}"
-            },
-            {
-              "field": "mobile_number_2",
-              "value": "={{ $json.mobile_number_2 }}"
-            },
-            {
               "field": "telephone_number",
               "value": "={{ $json.telephone_number }}"
             },
@@ -602,17 +566,22 @@
             {
               "field": "nationality",
               "value": "={{ $json.nationality }}"
-            }
+            },
+            {
+              "field": "designation",
+              "value": "={{ $json.selected_designation }}"
+            },
+            {}
           ]
         }
       },
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        3504,
-        608
+        544,
+        544
       ],
-      "id": "0c0e3ca9-8c3b-4f5b-82d6-4d1ede5b8dc2",
+      "id": "07f5ac1b-dcba-4577-a248-3be88e507f15",
       "name": "Create a document",
       "credentials": {
         "erpNextApi": {
@@ -628,11 +597,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -128,
-        128
+        -7600,
+        32
       ],
       "name": "Get Field Names",
-      "id": "5c559454-3d96-4d51-86c0-bde7ef134b45"
+      "id": "ab6c22a6-b98d-48ef-ba4f-58f5d1add789"
     },
     {
       "parameters": {
@@ -644,10 +613,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -336,
-        128
+        -7808,
+        32
       ],
-      "id": "26de845d-c291-4acf-b47a-43285aa11471",
+      "id": "1b1c9e38-1803-4ac2-beae-1a6eae4f9c27",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
@@ -663,10 +632,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1936,
-        640
+        -5536,
+        544
       ],
-      "id": "67eca97d-8dd7-4347-b994-a9888f18d587",
+      "id": "09bc9f29-bdb7-4ca9-95ce-2f6a786e7af8",
       "name": "Combine Data"
     },
     {
@@ -674,30 +643,11 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1584,
-        640
+        -5888,
+        544
       ],
-      "id": "6e01c8e5-dbef-4c7b-b73e-f66755e24893",
+      "id": "e263d497-7cbe-44f1-b865-b19924cbb5cf",
       "name": "Merge2"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        2608,
-        1136
-      ],
-      "id": "7468d49a-af0a-48aa-8696-917e9fac09bf",
-      "name": "Groq Chat Model1",
-      "credentials": {
-        "groqApi": {
-          "id": "r3VNOqJJuQYe97jA",
-          "name": "Groq account"
-        }
-      }
     },
     {
       "parameters": {
@@ -706,10 +656,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2832,
-        640
+        -4640,
+        544
       ],
-      "id": "cd088485-8fbe-4cf5-a5bc-c6c27e407840",
+      "id": "72a7a43e-614d-40ed-9769-e746a0eb359d",
       "name": "Code1"
     },
     {
@@ -726,10 +676,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        -320,
-        -144
+        -7792,
+        -272
       ],
-      "id": "fc6951f4-a850-4d28-bb0a-fb9f7a948e3a",
+      "id": "9c627e1c-105c-410f-8707-ff31c46b1ed3",
       "name": "Get many documents",
       "credentials": {
         "erpNextApi": {
@@ -743,30 +693,11 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3104,
-        0
+        -4160,
+        -128
       ],
-      "id": "e2a730ab-6d0a-49f3-b0d2-6b508e5aea40",
+      "id": "621f9f20-885a-4689-83ce-6f2f138db881",
       "name": "Merge1"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        4048,
-        208
-      ],
-      "id": "88a30854-73de-4d97-b86c-0b2ea992fe76",
-      "name": "Groq Chat Model2",
-      "credentials": {
-        "groqApi": {
-          "id": "r3VNOqJJuQYe97jA",
-          "name": "Groq account"
-        }
-      }
     },
     {
       "parameters": {
@@ -775,26 +706,341 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3312,
-        0
+        -3952,
+        -128
       ],
-      "id": "c0660fed-9416-4183-8af1-745340c3e468",
+      "id": "5c1d6eb8-6aee-4cbd-9a4d-61af903d3437",
       "name": "Combine Designations and Candidate Data"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Match the experience , educations, skills with the designation_list and describe which designation will be best {{ $json.text }}\nScore from 0-100% for each deisgnation\nOutput in a brief list format such as designation:score\ndo not add any extra information or markdown or comments\n",
+        "text": "=You are given a list of designations: {{ $json.designation_list }}.\nMatch the candidate's experience, education, skills, and technical qualifications ({{ $json.skills }}, {{ $json.technical_qualification }}, {{ $json.experience }}) to each designation in the list.\n\nFor each designation, assign a score from 0 to 100 based on the candidate's fit, focusing on experience and education.\n\nSTRICT OUTPUT REQUIREMENTS:\n- Output ONLY a valid JSON object.\n- Each key must be a designation from the provided list, and each value must be a score (number or string).\n- Do NOT include any notes, explanations, markdown, or extra text.\n- Do NOT create or invent new designations.\n- Output must start with '{' and end with '}'.\n- Do NOT include any text before or after the JSON.\n\nExample:\n{\n  \"Accountant\": \"80\",\n  \"Engineer\": \"60\",\n  \"Manager\": \"40\"\n}",
+        "hasOutputParser": true,
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        4032,
-        -16
+        -3456,
+        -128
       ],
-      "id": "0026cd72-6b5e-4b70-af9f-0bb2f89bdb34",
+      "id": "910e3645-1618-40d4-bca2-f0e9a82bb653",
       "name": "Designation Scorer"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"designation\":\"score\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -3088,
+        96
+      ],
+      "id": "e02ac83d-6b61-4915-9fda-a91024eeb9b8",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3088,
+        -144
+      ],
+      "id": "52bcec24-8130-418f-93dc-5b7a841bf722",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check designation scores and route accordingly\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const scores = item.json.output;\n  let bestDesignation = null;\n  let bestScore = 0;\n  \n  // Find the highest scoring designation\n  for (const [designation, score] of Object.entries(scores)) {\n    const numScore = parseInt(score);\n    if (numScore > bestScore) {\n      bestScore = numScore;\n      bestDesignation = designation;\n    }\n  }\n  \n  // If best score is above 80, use it\n  if (bestScore > 80) {\n    results.push({\n      json: {\n        ...item.json,\n        selected_designation: bestDesignation,\n        designation_score: bestScore,\n        designation_source: 'ai_match',\n        route: 'direct_create'\n      }\n    });\n  } else {\n    // If no score above 80, route to AI assignment\n    results.push({\n      json: {\n        ...item.json,\n        best_designation: bestDesignation,\n        best_score: bestScore,\n        route: 'ai_assign'\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2656,
+        -144
+      ],
+      "id": "9774dd76-d5d3-48dc-8bfa-6cc14efe3b82",
+      "name": "Designation Logic"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "direct_create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-direct"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "ai_assign",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-ai"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2464,
+        -144
+      ],
+      "id": "48f84f29-d059-4e00-91b3-0a46d5655fb5",
+      "name": "Route Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Based on the candidate's profile and the fact that no existing designation scored above 80%, please assign the most appropriate designation from this list: {{ $json.designation_list }}.\n\nCandidate Profile:\n- Skills: {{ $json.skills }}\n- Technical Qualification: {{ $json.technical_qualification }}\n- Experience: {{ $json.experience }}\n- Best matching designation so far: {{ $json.best_designation }} ({{ $json.best_score }}%)\n\nSTRICT OUTPUT REQUIREMENTS:\n- Output ONLY the designation name as a single string.\n- Choose ONLY from the provided designation list.\n- Do NOT include explanations, quotes, or extra text.\n- Return just the designation name.\n\nExample output: Software Developer",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -1872,
+        -64
+      ],
+      "id": "2e39c23d-eac4-4c69-9b15-947eddc05c0c",
+      "name": "AI Designation Assigner"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process AI designation assignment result\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const aiDesignation = item.json.text ? item.json.text.trim() : item.json.output || 'Software Developer';\n  \n  results.push({\n    json: {\n      ...item.json,\n      selected_designation: aiDesignation,\n      designation_score: 85, // Assign high score for AI-selected designation\n      designation_source: 'ai_assigned'\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        256
+      ],
+      "id": "e98a2193-4ea5-4f06-9437-b2130ab03462",
+      "name": "Process AI Designation"
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -3376,
+        144
+      ],
+      "id": "81e4b778-98ad-43b2-86a2-a4058accb590",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "r3VNOqJJuQYe97jA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1248,
+        544
+      ],
+      "id": "166f3ae2-d981-438b-bb03-c4069294933f",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge the two input items: one with personal info, one with designation info\nconst items = $input.all();\nif (items.length < 2) {\n  // Fallback: just return the first item if only one present\n  return items;\n}\n\n// Find the personal info object (has applicant_name) and the designation object (has selected_designation)\nconst personalInfo = items.find(item => item.json.applicant_name);\nconst designationInfo = items.find(item => item.json.selected_designation);\n\n// Merge all fields, with designation fields overwriting if needed\nconst merged = {\n  ...personalInfo.json,\n  ...designationInfo.json\n};\n\n// Check if the selected designation exists in the designation list\n// Use case-insensitive comparison and trim whitespace for better matching\nconst designationExists = merged.designation_list && \n  merged.designation_list.some(designation => \n    designation.toLowerCase().trim() === merged.selected_designation.toLowerCase().trim()\n  );\n\n// Add routing information\nmerged.designation_exists = designationExists;\nmerged.route_action = designationExists ? 'create_applicant' : 'create_designation_first';\n\n// Add debugging information for troubleshooting\nmerged.debug_info = {\n  selected_designation: merged.selected_designation,\n  selected_normalized: merged.selected_designation ? merged.selected_designation.toLowerCase().trim() : null,\n  designation_list_count: merged.designation_list ? merged.designation_list.length : 0,\n  designation_exists: designationExists,\n  matching_designations: merged.designation_list ? \n    merged.designation_list.filter(d => \n      d.toLowerCase().trim() === merged.selected_designation.toLowerCase().trim()\n    ) : []\n};\n\nreturn [{ json: merged }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        544
+      ],
+      "id": "a65d545d-171e-4ab5-a5ab-2d201a5506f8",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract job applicant information from this text into a structured JSON format. \nYou must return a valid JSON object with a single \"output\" key, and all the following fields:\n\n{{ $json.fieldnames.join(', ') }}\n\nText to analyze:\n{{ $json.fullText }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key.\n- The \"output\" object MUST contain ALL the fields listed above, no more, no less.\n--known languages should be speaking language, not coding language\n- Field-specific formats:\n   - Dates: YYYY-MM-DD format only\n   - Phone/mobile: Include country code if present (e.g., \"+1 123-456-7890\")\n   - Email: Must be valid email format\n   - Skills/Languages: Must be arrays (e.g., [\"Skill1\", \"Skill2\"] or [])\n   - IDs (passport, etc.): without dashes\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: \"Not Provided\"\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n\nIMPORTANT: Your response must be valid JSON that can be parsed.Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'. Do not include any text before or after the JSON.\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -4992,
+        544
+      ],
+      "id": "da9ea61d-95da-4232-8366-9c844c7ddbe4",
+      "name": "Resume Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route_action }}",
+                    "rightValue": "create_applicant",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-direct-applicant"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route_action }}",
+                    "rightValue": "create_designation_first",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-create-designation"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -832,
+        544
+      ],
+      "id": "adb62388-c02f-43c3-9371-7f9900b72241",
+      "name": "Designation Check Switch"
+    },
+    {
+      "parameters": {
+        "docType": "Designation",
+        "properties": {
+          "customProperty": [
+            {
+              "field": "designation_name",
+              "value": "={{ $json.selected_designation }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        704
+      ],
+      "id": "c2d8c26c-5113-4680-97e6-f04a23f36adb",
+      "name": "Create New Designation",
+      "credentials": {
+        "erpNextApi": {
+          "id": "bNlyHP0hCgv4Uy7g",
+          "name": "ERPNext account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// After attempting to create designation, prepare data for job applicant creation\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  // Check if the designation creation was successful or failed\n  const hasError = item.json.error || item.json.errorMessage;\n  const isSuccess = !hasError && item.json.name; // ERPNext returns 'name' field on successful creation\n  \n  // Handle both success and error cases (e.g., duplicate designation)\n  let designationStatus = 'unknown';\n  let designationMessage = '';\n  \n  if (isSuccess) {\n    designationStatus = 'created';\n    designationMessage = `Designation '${item.json.designation_name || item.json.selected_designation}' created successfully`;\n  } else if (hasError) {\n    // Check if it's a duplicate error\n    const errorMsg = item.json.errorMessage || item.json.error || '';\n    if (errorMsg.toLowerCase().includes('duplicate') || \n        errorMsg.toLowerCase().includes('already exists') ||\n        errorMsg.toLowerCase().includes('unique')) {\n      designationStatus = 'already_exists';\n      designationMessage = `Designation '${item.json.selected_designation}' already exists in system`;\n    } else {\n      designationStatus = 'creation_failed';\n      designationMessage = `Failed to create designation: ${errorMsg}`;\n    }\n  }\n  \n  result.push({\n    json: {\n      ...item.json,\n      designation_creation_status: designationStatus,\n      designation_creation_message: designationMessage,\n      designation_available: isSuccess || designationStatus === 'already_exists',\n      ready_for_applicant_creation: true,\n      // Clear any error fields since we've handled them\n      error: undefined,\n      errorMessage: undefined\n    }\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        704
+      ],
+      "id": "a738d31e-c053-49a9-a06c-28299202cb1d",
+      "name": "Post Designation Creation"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verify designation creation and prepare final data\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  // Add final verification and logging\n  const finalData = {\n    ...item.json,\n    workflow_step: 'designation_verified',\n    final_verification: {\n      has_selected_designation: !!item.json.selected_designation,\n      designation_source: item.json.designation_source,\n      creation_status: item.json.designation_creation_status,\n      ready_for_applicant: item.json.ready_for_applicant_creation\n    }\n  };\n  \n  result.push({ json: finalData });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        688
+      ],
+      "id": "25e6c626-afae-491b-b098-451e88d9bf6c",
+      "name": "Designation Verification"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        560
+      ],
+      "id": "02924941-6d97-4572-a2d2-2792df0bd442",
+      "name": "Final Merge"
     }
   ],
   "connections": {
@@ -835,19 +1081,8 @@
       "ai_languageModel": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Resume Parser",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Basic LLM Chain": {
-      "main": [
-        [
-          {
-            "node": "Code1",
-            "type": "main",
             "index": 0
           }
         ]
@@ -1025,7 +1260,7 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Resume Parser",
             "type": "main",
             "index": 0
           }
@@ -1043,22 +1278,16 @@
         ]
       ]
     },
-    "Groq Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code1": {
       "main": [
         [
           {
             "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
             "type": "main",
             "index": 0
           }
@@ -1087,17 +1316,6 @@
         ]
       ]
     },
-    "Groq Chat Model2": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Designation Scorer",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Combine Designations and Candidate Data": {
       "main": [
         [
@@ -1111,7 +1329,186 @@
     },
     "Designation Scorer": {
       "main": [
-        []
+        [
+          {
+            "node": "Designation Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Designation Scorer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Designation Logic": {
+      "main": [
+        [
+          {
+            "node": "Route Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Switch": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "AI Designation Assigner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Designation Assigner": {
+      "main": [
+        [
+          {
+            "node": "Process AI Designation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Designation": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Designation Scorer",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Designation Assigner",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Designation Check Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Parser": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Designation Check Switch": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New Designation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Designation": {
+      "main": [
+        [
+          {
+            "node": "Post Designation Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Designation Creation": {
+      "main": [
+        [
+          {
+            "node": "Designation Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Designation Verification": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final Merge": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
