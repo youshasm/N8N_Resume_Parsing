@@ -47,13 +47,13 @@
         },
         "options": {}
       },
-      "id": "436528c2-1656-46cd-87c9-963eef222138",
+      "id": "d13cfde2-a292-44c6-9409-0c3d2ed950c6",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -1760,
-        160
+        -1408,
+        -384
       ]
     },
     {
@@ -65,11 +65,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        320,
-        -528
+        928,
+        -448
       ],
       "typeVersion": 1,
-      "id": "00d5de79-ecdb-46d6-9c65-bb75211c3930",
+      "id": "d330e8f3-328e-4ec6-b3f5-d514f1a6b468",
       "name": "Sticky Note3"
     },
     {
@@ -80,11 +80,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -864,
-        -560
+        -256,
+        -320
       ],
       "typeVersion": 1,
-      "id": "0a14c7c2-8f15-41c3-8339-5c1c8a9b765e",
+      "id": "4afb3ff5-3d63-48d0-bfcd-8fe63442e016",
       "name": "Sticky Note1"
     },
     {
@@ -96,32 +96,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2032,
-        80
+        -1664,
+        -448
       ],
       "typeVersion": 1,
-      "id": "8f6b96d1-d281-4845-9b61-94b3fee465a6",
+      "id": "c755f7a7-d281-466f-a357-125343a01af0",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "model": "llama-3.3-70b-versatile",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        1920,
-        160
-      ],
-      "id": "66bf68e5-28a3-4a1e-a3d9-1ca5765d63a6",
-      "name": "Groq Chat Model",
-      "credentials": {
-        "groqApi": {
-          "id": "r3VNOqJJuQYe97jA",
-          "name": "Groq account"
-        }
-      }
     },
     {
       "parameters": {
@@ -130,10 +110,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -816,
-        -480
+        -208,
+        -256
       ],
-      "id": "13151893-359f-4a82-bace-96bdd308a285",
+      "id": "a3c5002b-f86c-4381-ad54-217c5f630657",
       "name": "Code",
       "disabled": true
     },
@@ -155,10 +135,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1376,
-        160
+        -960,
+        -384
       ],
-      "id": "0648889d-4a0b-491f-9988-0e3397063e3c",
+      "id": "c24d04b2-4cc0-4b0c-bd0d-276ef55383a1",
       "name": "Edit Fields1"
     },
     {
@@ -179,10 +159,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1488,
-        -352
+        -960,
+        -576
       ],
-      "id": "60319343-b50f-401a-8ea1-a4997aa0ccc6",
+      "id": "436efa40-e7a7-4f7b-ae09-ccf5cf80bf37",
       "name": "Edit Fields"
     },
     {
@@ -204,10 +184,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -2048,
-        -352
+        -1856,
+        -688
       ],
-      "id": "166ff1d2-3983-4adf-bf72-07425931e132",
+      "id": "25257f02-b40f-45a0-96ad-189fcc63564b",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
@@ -215,26 +195,26 @@
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "f65b26ad-5044-4097-bf81-7f48108a9445",
+      "id": "0668cca0-c536-40de-9acf-50f9528bc47b",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1936,
-        160
+        -1632,
+        -384
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "46cf3cf4-9a35-4a70-889b-8e61f59837b7",
+      "id": "43aa6b0f-af95-4f79-ac3a-d9630e60d456",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1552,
-        160
+        -1184,
+        -384
       ]
     },
     {
@@ -339,10 +319,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -992,
-        -368
+        -512,
+        -528
       ],
-      "id": "73b02797-ec78-46bf-a2ad-cd18bfdb8ac4",
+      "id": "eff66f16-d79e-4ee3-89a2-91a622f112dd",
       "name": "Switch1"
     },
     {
@@ -369,13 +349,13 @@
           }
         }
       },
-      "id": "ba932bc0-6ad4-4b0f-a8c5-28fa4cbd501b",
+      "id": "47e1db95-bdff-45b7-99ee-e6e3d3ccae51",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -608,
-        -480
+        16,
+        -256
       ],
       "alwaysOutputData": false
     },
@@ -396,10 +376,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1264,
-        -336
+        -736,
+        -496
       ],
-      "id": "c9aa7288-6123-42ec-8172-6d9c48821ee6",
+      "id": "aefe14f6-3f54-4b72-8499-c5cef4a0d9ed",
       "name": "Merge"
     },
     {
@@ -494,14 +474,14 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        7536,
-        -320
+        5472,
+        -672
       ],
-      "id": "8f7a0dc4-944d-4a13-8f7b-f6ebb4093127",
+      "id": "c8d8580d-3b9e-4f2d-95be-4b6db3f94067",
       "name": "Create a document",
       "credentials": {
         "erpNextApi": {
-          "id": "bNlyHP0hCgv4Uy7g",
+          "id": "PCyfMt7tI6h55Qt2",
           "name": "ERPNext account"
         }
       }
@@ -513,11 +493,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -832,
-        -832
+        -64,
+        -736
       ],
       "name": "Get Field Names",
-      "id": "89dcfc20-5958-4865-b270-2f08de962252"
+      "id": "299ed68b-67e8-4994-b598-b3d544bba5f8"
     },
     {
       "parameters": {
@@ -529,30 +509,17 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -1040,
-        -832
+        -288,
+        -736
       ],
-      "id": "9c80c08e-c0f7-448a-a187-c4fa3321800f",
+      "id": "7eb056ee-09ba-4fcb-8b3e-33b8f1413377",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
-          "id": "bNlyHP0hCgv4Uy7g",
+          "id": "PCyfMt7tI6h55Qt2",
           "name": "ERPNext account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Get all items from both input branches\nconst items = $input.all();\n\n// Initialize the combined data object\nlet combinedData = {\n    fieldnames: [],\n    fullText: ''\n};\n\n// Process each item\nfor (const item of items) {\n    // If the item has fieldnames, store them\n    if (item.json.fieldnames && Array.isArray(item.json.fieldnames)) {\n        combinedData.fieldnames = item.json.fieldnames;\n    }\n    // If the item has fullText, store it\n    if (item.json.fullText) {\n        combinedData.fullText = item.json.fullText;\n    }\n}\n\n// Return the combined data\nreturn [{ json: combinedData }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1632,
-        -304
-      ],
-      "id": "c73d61f5-0cb8-47bd-9193-19c40eaa792b",
-      "name": "Combine Data"
     },
     {
       "parameters": {
@@ -561,10 +528,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2352,
-        -320
+        1856,
+        -448
       ],
-      "id": "8b1409bf-73b7-40dc-ada4-52b262c8eadf",
+      "id": "261dbf9c-cb86-4236-9564-3c3f30a54d59",
       "name": "Code1"
     },
     {
@@ -581,14 +548,14 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        -1024,
-        -1136
+        1856,
+        -880
       ],
-      "id": "02b64e5d-ed96-4a4d-bd00-7161134c26f7",
+      "id": "ea6566b9-be07-44d2-8784-74bfa8822c14",
       "name": "Get many documents",
       "credentials": {
         "erpNextApi": {
-          "id": "bNlyHP0hCgv4Uy7g",
+          "id": "PCyfMt7tI6h55Qt2",
           "name": "ERPNext account"
         }
       }
@@ -598,10 +565,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2832,
-        -992
+        2080,
+        -752
       ],
-      "id": "d94638f8-d701-460d-8224-1efb17cbe63f",
+      "id": "cf21e220-a823-4edd-bbca-21c037a39e79",
       "name": "Merge1"
     },
     {
@@ -611,10 +578,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3040,
-        -992
+        2304,
+        -752
       ],
-      "id": "533d7527-b4a5-4467-9034-62ea24720024",
+      "id": "b98c52e2-2805-4b22-983a-0de867ab1a27",
       "name": "Combine Designations and Candidate Data"
     },
     {
@@ -627,10 +594,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        3536,
-        -992
+        2528,
+        -752
       ],
-      "id": "345e52d6-c828-4abb-907d-fcbe72968dde",
+      "id": "0258ecd9-50b0-437d-9939-3bdf0bc96a22",
       "name": "Designation Scorer"
     },
     {
@@ -641,10 +608,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        3904,
-        -768
+        2656,
+        -528
       ],
-      "id": "c81af8af-3b16-44ca-a828-7d3cc78690a3",
+      "id": "2bedf3d1-d294-480e-8470-8e1472afc115",
       "name": "Structured Output Parser1"
     },
     {
@@ -654,10 +621,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4336,
-        -1008
+        2880,
+        -752
       ],
-      "id": "ceb9e65a-ca6c-4169-9e7e-1ba9ac7fca6f",
+      "id": "60a6c2b2-73f2-41d4-9cc2-dfec3d75c4ef",
       "name": "Designation Logic"
     },
     {
@@ -715,10 +682,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4528,
-        -1008
+        3104,
+        -752
       ],
-      "id": "910c5e0a-e338-4eff-8004-44746b829ef1",
+      "id": "9954c51b-d5d9-4aba-b23b-f87df470b8d7",
       "name": "Route Switch"
     },
     {
@@ -730,10 +697,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        5120,
-        -928
+        3328,
+        -816
       ],
-      "id": "25f8a744-da5d-49c0-ab37-e2e412a303ed",
+      "id": "e5cfd094-346f-4eab-b34d-c8936872da6f",
       "name": "AI Designation Assigner"
     },
     {
@@ -743,41 +710,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5424,
-        -608
+        3680,
+        -816
       ],
-      "id": "779c58a4-37b7-4977-ab7c-e95a5fa4bee0",
+      "id": "1fba8a47-77e2-4876-8f89-a04367b8f5de",
       "name": "Process AI Designation"
-    },
-    {
-      "parameters": {
-        "model": "moonshotai/kimi-k2-instruct",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        3424,
-        -416
-      ],
-      "id": "5a90cbf5-1764-4752-9802-dfa1e2ac0067",
-      "name": "Groq Chat Model1",
-      "credentials": {
-        "groqApi": {
-          "id": "r3VNOqJJuQYe97jA",
-          "name": "Groq account"
-        }
-      }
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        5744,
-        -320
+        3904,
+        -672
       ],
-      "id": "21c72d57-db07-4aa8-9642-2e8572c51b5b",
+      "id": "ecd51ca9-078b-49ab-8a5b-46dc81dcf9a4",
       "name": "Merge3"
     },
     {
@@ -787,25 +734,34 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5952,
-        -320
+        4128,
+        -672
       ],
-      "id": "8c79099d-1371-4686-bda9-884d1f36745d",
+      "id": "70df8888-ff28-44c9-971f-1accbe81c9f9",
       "name": "Code3"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Extract job applicant information from this text into a structured JSON format. \nYou must return a valid JSON object with a single \"output\" key, and all the following fields:\n\n{{ $json.fieldnames.join(', ') }}\n\nText to analyze:\n{{ $json.fullText }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key.\n- The \"output\" object MUST contain ALL the fields listed above, no more, no less.\n--known languages should be speaking language, not coding language\n- Field-specific formats:\n   - Dates: YYYY-MM-DD format only\n   - Phone/mobile: Include country code if present (e.g., \"+1 123-456-7890\")\n   - Email: Must be valid email format\n   - Skills/Languages: Must be arrays (e.g., [\"Skill1\", \"Skill2\"] or [])\n   - IDs (passport, etc.): without dashes\n   - Marital Status should be Married or Unmarried\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: \"Not Provided\"\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n- Known languages : Urdu\n- Skills : Not Specified\nIMPORTANT: Your response must be valid JSON that can be parsed.Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'. Do not include any text before or after the JSON.\n",
+        "text": "=Analyze this resume/CV document and extract job applicant information into a structured JSON format.\n\n{% if $json.processing_method === 'vision_analysis' %}\nYou are analyzing a visual document (image or PDF page). Carefully examine all text, formatting, and layout elements in the image.\n{% elif $json.processing_method === 'text_analysis' %}\nYou are analyzing text content extracted from a document:\n{{ $json.extracted_text }}\n{% else %}\nAnalyze the provided document content (image or text) to extract information.\n{% endif %}\n\nYou must return a valid JSON object with a single \"output\" key, containing ALL the following fields:\n{{ $json.fieldnames }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key\n- The \"output\" object MUST contain ALL {{ $json.total_fields }} fields listed above, no more, no less\n- Known languages should be speaking languages (English, Urdu, Arabic), not programming languages\n- Field-specific formats:\n   - Dates: YYYY-MM-DD format only (convert any date format you find)\n   - Phone/mobile: Include country code if present (e.g., \"+92 300-1234567\")\n   - Email: Must be valid email format\n   - Skills/Languages: Must be arrays (e.g., [\"Skill1\", \"Skill2\"] or [])\n   - IDs (passport, CNIC, etc.): without dashes or spaces\n   - Marital Status: \"Married\" or \"Unmarried\" only\n   - Boolean fields (has_passport, has_license): true or false\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: \"Not Provided\"\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n- Known languages: [\"Urdu\"]\n- Skills: []\n- Boolean fields: false\n- Country : Pakistan\nEXTRACTION GUIDELINES:\n{% if $json.processing_method === 'vision_analysis' %}\n- Carefully examine ALL text visible in the image\n- Look for headers, sections, and formatted content\n- Pay attention to layout and visual organization\n- Scan for any information in margins or headers\n{% else %}\n- Carefully read all provided text content\n- Look for structured sections and keywords\n- Extract information from any format or layout\n{% endif %}\n- Extract personal information (name, contact details, address)\n- Find education details from education/qualification sections\n- Identify work experience from employment history\n- Look for skills sections, both technical and soft skills\n- Search for passport/CNIC numbers in personal details\n- Pay attention to dates in various formats throughout the document\n- Extract phone numbers and email addresses from contact information\n- Notice any certifications or licenses mentioned\n- Look for languages mentioned in skills or personal sections\n- Be thorough in extracting all available information\n- If you see partial information, extract what you can\n\nIMPORTANT: Your response must be valid JSON that can be parsed. Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'.",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "file"
+            }
+          ]
+        },
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        432,
-        -432
+        1504,
+        -448
       ],
-      "id": "20cdebf8-490d-4bae-8dbd-d20f0e2d9ebd",
+      "id": "87f2e054-7c7e-4a0e-b9cf-57505e1a1393",
       "name": "Resume Parser"
     },
     {
@@ -863,39 +819,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        6160,
-        -320
+        4352,
+        -672
       ],
-      "id": "65a7aec3-b0d2-4e9a-845b-165d7c7ee9e1",
+      "id": "9e4de91b-9118-4ee5-970b-5a46c8542210",
       "name": "Designation Check Switch"
-    },
-    {
-      "parameters": {
-        "docType": "Designation",
-        "properties": {
-          "customProperty": [
-            {
-              "field": "designation_name",
-              "value": "={{ $json.selected_designation }}"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.erpNext",
-      "typeVersion": 1,
-      "position": [
-        6368,
-        -160
-      ],
-      "id": "a436b2a7-f7ff-4900-a59b-5e95db5df2d2",
-      "name": "Create New Designation",
-      "credentials": {
-        "erpNextApi": {
-          "id": "bNlyHP0hCgv4Uy7g",
-          "name": "ERPNext account"
-        }
-      },
-      "continueOnFail": true
     },
     {
       "parameters": {
@@ -904,10 +832,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6576,
-        -160
+        4800,
+        -608
       ],
-      "id": "eecddd1e-0e2e-4120-989e-596878cffa7a",
+      "id": "b54ea0fc-ad0e-41df-ae09-be4427493540",
       "name": "Post Designation Creation"
     },
     {
@@ -917,10 +845,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6848,
-        -176
+        5024,
+        -608
       ],
-      "id": "b6c79569-2a1c-4906-b5d3-2e1f497aad4c",
+      "id": "f7a4297d-eb68-4d8f-b960-df441dcf9f70",
       "name": "Designation Verification"
     },
     {
@@ -928,32 +856,33 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        7056,
-        -304
+        5248,
+        -672
       ],
-      "id": "6318dad3-18df-40cb-9e23-76198459ca43",
+      "id": "8a6772b8-1377-4178-9113-151cd7a48524",
       "name": "Final Merge"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "gpt-4o-mini",
           "mode": "list",
-          "value": "gpt-4.1-mini"
+          "cachedResultName": "gpt-4o-mini"
         },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        432,
-        -240
+        1568,
+        -224
       ],
-      "id": "1c16e9b4-a2fc-47a7-87e1-42735c782550",
+      "id": "1df9c358-2503-4a06-9cbb-9e81f2e573fc",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "5liti0r8nCKQKGur",
+          "id": "553djEfLQRobcIUg",
           "name": "OpenAi account"
         }
       }
@@ -962,36 +891,250 @@
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "gpt-4o-mini",
           "mode": "list",
-          "value": "gpt-4.1-mini"
+          "cachedResultName": "gpt-4o-mini"
         },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3600,
-        -672
+        2528,
+        -528
       ],
-      "id": "fed6805e-4956-4837-addb-3e12833b1ea0",
+      "id": "b8e8f95c-9a85-4901-9f0f-4b879baac557",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
-          "id": "5liti0r8nCKQKGur",
+          "id": "553djEfLQRobcIUg",
           "name": "OpenAi account"
         }
       }
+    },
+    {
+      "parameters": {
+        "docType": "Designation",
+        "properties": {
+          "customProperty": [
+            {
+              "field": "designation_name",
+              "value": "={{ $json.debug_info.selected_designation }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        4576,
+        -608
+      ],
+      "id": "4ccf684c-94c5-4e1a-bdc2-1c9f6f1d3834",
+      "name": "Create a document1",
+      "credentials": {
+        "erpNextApi": {
+          "id": "PCyfMt7tI6h55Qt2",
+          "name": "ERPNext account"
+        }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1168,
+        160,
+        -544
+      ],
+      "id": "0c2b28bd-e3c6-4f51-92c3-497afc39517b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine file data and fieldnames, ensure binary data is preserved\nconst items = $input.all();\nconst fileData = items[0];\nconst fieldnamesData = items[1];\n\n// Preserve binary data from the file input\nconst result = {\n  json: {\n    ...fileData.json,\n    ...fieldnamesData.json\n  },\n  binary: fileData.binary || {} // Ensure binary data is preserved\n};\n\nreturn [result];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -544
+      ],
+      "id": "0e454ef6-2967-43c7-9f3c-da084d5c27e2",
+      "name": "Combine Data1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://imp-fastapi:8000/api/documents/extract-images",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "extracted_image"
+            }
+          }
+        }
+      },
+      "id": "7ca2f4ea-e33f-447f-8168-9e2cd479f430",
+      "name": "Extract Images from PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        608,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for Resume Parser with extracted image\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  // Use extracted image if available, otherwise use original file\n  const binaryData = item.binary.extracted_image || item.binary.file;\n  \n  result.push({\n    json: {\n      ...item.json,\n      image_extracted: !!item.binary.extracted_image,\n      processing_method: item.binary.extracted_image ? 'vision_analysis' : 'direct_file'\n    },\n    binary: {\n      file: binaryData\n    }\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -544
+      ],
+      "id": "5898b355-007a-42e4-9314-1d0d5dbd01b0",
+      "name": "Prepare for Vision Analysis"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.image_extracted }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1056,
+        -544
+      ],
+      "id": "4914c516-7321-4892-965b-947df2caeed7",
+      "name": "Image Extraction Check"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://imp-fastapi:8000/api/documents/extract-text",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "58dd0802-a20d-436d-b85c-7bb1c17ca608",
+      "name": "Extract Text Fallback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        832,
+        -352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare text data for Resume Parser when image extraction fails\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  result.push({\n    json: {\n      ...item.json,\n      processing_method: 'text_analysis',\n      extracted_text: item.json.text_content || 'No text extracted',\n      fallback_reason: 'Image extraction failed or unavailable'\n    },\n    binary: item.binary || {}\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        -352
+      ],
+      "id": "8c46eef3-77b3-4224-b735-87784f5e437d",
+      "name": "Prepare Text Analysis"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1280,
         -448
       ],
-      "id": "14d20b6c-fe62-471e-886a-98e75b3ef549",
-      "name": "Merge2"
+      "id": "2ed12945-ee10-4be3-9014-fe559d29020f",
+      "name": "Merge Processing Routes"
+    },
+    {
+      "parameters": {},
+      "id": "manual-test-trigger-001",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        -500
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $json.test_file_path }}",
+        "options": {}
+      },
+      "id": "read-test-file-001",
+      "name": "Read Test File",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        -1650,
+        -500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare test file data to match form submission format\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  // Extract filename from file path\n  const filePath = item.json.test_file_path || '';\n  const filename = filePath.split(/[\\\\\\/]/).pop() || 'test_file.pdf';\n  \n  // Create data structure that matches form submission\n  const result = {\n    json: {\n      // Add test file metadata\n      original_filename: filename,\n      fileName: filename,\n      test_mode: true,\n      test_file_path: filePath,\n      document_id: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,\n      quality_score: 0.85, // Default quality for testing\n      confidence: 0.9\n    },\n    binary: {\n      // Use the file data from Read Binary File node\n      file: item.binary.data\n    }\n  };\n  \n  results.push(result);\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1450,
+        -500
+      ],
+      "id": "prepare-test-data-001",
+      "name": "Prepare Test Data"
     }
   ],
   "connections": {
@@ -1105,14 +1248,14 @@
         ],
         [
           {
-            "node": "Resume Parser",
+            "node": "Merge2",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Resume Parser",
+            "node": "Merge2",
             "type": "main",
             "index": 0
           }
@@ -1123,7 +1266,7 @@
       "main": [
         [
           {
-            "node": "Resume Parser",
+            "node": "Merge2",
             "type": "main",
             "index": 0
           }
@@ -1157,17 +1300,6 @@
         [
           {
             "node": "Get Field Names",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Combine Data": {
-      "main": [
-        [
-          {
-            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -1322,7 +1454,7 @@
       "main": [
         [
           {
-            "node": "Merge2",
+            "node": "Code1",
             "type": "main",
             "index": 0
           }
@@ -1340,18 +1472,7 @@
         ],
         [
           {
-            "node": "Create New Designation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create New Designation": {
-      "main": [
-        [
-          {
-            "node": "Post Designation Creation",
+            "node": "Create a document1",
             "type": "main",
             "index": 0
           }
@@ -1418,11 +1539,132 @@
         ]
       ]
     },
+    "Create a document1": {
+      "main": [
+        [
+          {
+            "node": "Post Designation Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Merge2": {
       "main": [
         [
           {
-            "node": "Combine Data",
+            "node": "Combine Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Data1": {
+      "main": [
+        [
+          {
+            "node": "Extract Images from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Images from PDF": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Vision Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Vision Analysis": {
+      "main": [
+        [
+          {
+            "node": "Image Extraction Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Extraction Check": {
+      "main": [
+        [
+          {
+            "node": "Merge Processing Routes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text Fallback": {
+      "main": [
+        [
+          {
+            "node": "Prepare Text Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Text Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge Processing Routes",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Processing Routes": {
+      "main": [
+        [
+          {
+            "node": "Resume Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Test File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Test File": {
+      "main": [
+        [
+          {
+            "node": "Prepare Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Test Data": {
+      "main": [
+        [
+          {
+            "node": "Classification Engine1",
             "type": "main",
             "index": 0
           }
@@ -1432,6 +1674,7 @@
   },
   "pinData": {},
   "meta": {
-    "instanceId": "041eddc42e8d6ee241e9e999a065d6008656c8550e121b35ce86ff040bc3c386"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8dbc788362a7064be1e99adf037458c451d1265e79b52ecf653899e06c56f8d2"
   }
 }
