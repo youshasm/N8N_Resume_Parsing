@@ -11,32 +11,23 @@ RUN apt-get update && apt-get install -y \
     libmagic1 \
     libmagic-dev \
     poppler-utils \
-    tesseract-ocr \
-    libtesseract-dev \
     wget \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libgomp1 \
     libreoffice \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies FIRST (for better caching)
 COPY requirements.txt .
 
-# Install CPU-only PyTorch first to avoid CUDA dependencies
-RUN pip install --no-cache-dir torch==2.1.0+cpu torchvision==0.16.0+cpu --index-url https://download.pytorch.org/whl/cpu
-
-# Install remaining dependencies (excluding torch/torchvision which are already installed)
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code LAST (after packages are installed)
 # This ensures package installation layers are cached
-COPY src/ ./src/
 COPY main.py .
 COPY .env.docker .env
 
 # Create necessary directories
-RUN mkdir -p documents/uploads documents/temp documents/processed logs models src/ai
+RUN mkdir -p documents/uploads documents/temp documents/processed logs
 
 # Expose port
 EXPOSE 8000
@@ -44,10 +35,8 @@ EXPOSE 8000
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-ENV TRANSFORMERS_CACHE=/app/models
-ENV HF_HOME=/app/models
 
-# Health check for unified API
+# Health check for API
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/api/health')" || exit 1
 

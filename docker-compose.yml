@@ -28,7 +28,7 @@ services:
       retries: 5
       start_period: 10s
 
-  # IMP FastAPI Application - (AI + Fallback) with PostgreSQL
+  # IMP FastAPI Application - (API-based, no local AI/ML dependencies) with PostgreSQL
   imp-fastapi:
     build: .
     container_name: imp-fastapi
@@ -44,7 +44,7 @@ services:
     volumes:
       - ./documents:/app/documents
       - ./logs:/app/logs
-      - ./models:/app/models  # Cache AI models
+      #- ./models:/app/models  # Model cache (optional, safe to keep for HuggingFace/transformers if needed)
     ports:
       - "8000:8000"
     networks:
