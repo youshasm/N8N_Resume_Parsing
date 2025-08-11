@@ -47,13 +47,13 @@
         },
         "options": {}
       },
-      "id": "f269c8f8-cd04-48a0-b4dd-8e45d1059114",
+      "id": "38102679-9016-4035-97fb-81ccc16bedb9",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -1904,
-        528
+        -1600,
+        720
       ]
     },
     {
@@ -65,11 +65,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        256,
-        464
+        576,
+        656
       ],
       "typeVersion": 1,
-      "id": "1e0b7796-8595-4ad9-afae-31e11df61710",
+      "id": "f0f1b9f7-a0dd-4066-9528-d311862550a8",
       "name": "Sticky Note3"
     },
     {
@@ -80,11 +80,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -960,
-        640
+        -656,
+        832
       ],
       "typeVersion": 1,
-      "id": "1045beca-685f-482f-a9ee-a57967f40a2f",
+      "id": "8f99c68b-471d-45ef-95d8-fd1c6ff574d9",
       "name": "Sticky Note1"
     },
     {
@@ -96,11 +96,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2368,
-        464
+        -2064,
+        656
       ],
       "typeVersion": 1,
-      "id": "50066d08-5a01-49b6-87b4-c317f8e5aa14",
+      "id": "531ce063-3115-4406-95d6-8604a057c867",
       "name": "Sticky Note"
     },
     {
@@ -110,10 +110,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -912,
-        704
+        -608,
+        896
       ],
-      "id": "03cf922a-920f-49fd-bde6-92ba109731e7",
+      "id": "65f25c1a-a942-48ad-bee0-7a9bf95728c2",
       "name": "Code",
       "disabled": true
     },
@@ -135,10 +135,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1456,
-        528
+        -1152,
+        720
       ],
-      "id": "c29adfe9-f2ab-4a3f-85cc-2b4ff746a637",
+      "id": "5d5f0f11-245e-41fc-a1d7-368b7b3e86fb",
       "name": "Edit Fields1"
     },
     {
@@ -159,62 +159,36 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1456,
-        336
+        -1152,
+        528
       ],
-      "id": "576eb662-3c14-464c-8241-ebca4512b63e",
+      "id": "72282f97-749c-405e-ae1f-7d541eeff632",
       "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "formTitle": "upload",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "file",
-              "fieldType": "file"
-            }
-          ]
-        },
-        "responseMode": "lastNode",
-        "options": {
-          "buttonLabel": "Submit"
-        }
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
-      "position": [
-        -3152,
-        320
-      ],
-      "id": "12efed48-f3e3-451f-9805-21bb2837a662",
-      "name": "On form submission",
-      "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "aef08fcb-1cd6-4467-8f6b-858d9b0d9828",
+      "id": "fe313612-16f3-4cde-88ff-d78d2485de27",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2128,
-        528
+        -1824,
+        720
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "99f16372-06de-4f10-9f37-17cdbdddb4b7",
+      "id": "07e0d001-5747-4d46-b527-c10c91e9c6ac",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1680,
-        528
+        -1376,
+        720
       ]
     },
     {
@@ -319,10 +293,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -1008,
-        384
+        -704,
+        576
       ],
-      "id": "48c1492b-9e66-4d2a-be0f-1f825055eed7",
+      "id": "259dca4a-5c74-42bf-942c-79244f342dd5",
       "name": "Switch1"
     },
     {
@@ -349,13 +323,13 @@
           }
         }
       },
-      "id": "bc00e16d-5bce-4844-aa70-453e85df5306",
+      "id": "f119fd74-de47-4a3d-89df-b5c03abda094",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -704,
-        720
+        -400,
+        912
       ],
       "alwaysOutputData": false
     },
@@ -376,10 +350,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1232,
-        416
+        -928,
+        608
       ],
-      "id": "1029fd3e-c25b-437a-9241-b599fdb942f4",
+      "id": "32c22a6e-7a51-4ee3-ba7e-aad8dff60545",
       "name": "Merge"
     },
     {
@@ -467,9 +441,60 @@
               "field": "designation",
               "value": "={{ $json.selected_designation }}"
             },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.erpNext",
+      "typeVersion": 1,
+      "position": [
+        6224,
+        416
+      ],
+      "id": "ea75679f-ac5c-436c-a1bd-2abda879841d",
+      "name": "Create a document",
+      "credentials": {
+        "erpNextApi": {
+          "id": "PCyfMt7tI6h55Qt2",
+          "name": "ERPNext account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generated by Copilot\n// Split experience data into individual Experience Certifications for ERPNext\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const jobApplicantData = item.json;\n  const experienceArray = jobApplicantData.experience || [];\n  \n  // Store the job applicant document name for reference\n  const jobApplicantName = jobApplicantData.name;\n  \n  if (Array.isArray(experienceArray) && experienceArray.length > 0) {\n    // Create separate items for each experience entry\n    experienceArray.forEach((experience, index) => {\n      result.push({\n        json: {\n          job_applicant: jobApplicantName,\n          company: experience.company || 'Not Specified',\n          designation: experience.designation || 'Not Specified',\n          years_of_experience: experience.years_of_experience || '0',\n          experience_description: experience.experience_description || 'No description provided',\n          from_date: experience.from_date || '2000-01-01',\n          to_date: experience.to_date || '2000-01-01',\n          salary: experience.salary || 0,\n          idx: index + 1,\n          parentfield: 'experience',\n          parenttype: 'Job Applicant',\n          doctype: 'Experience Certifications'\n        }\n      });\n    });\n  } else {\n    // If no experience data, create a default entry\n    result.push({\n      json: {\n        job_applicant: jobApplicantName,\n        company: 'Not Specified',\n        designation: 'Not Specified',\n        years_of_experience: '0',\n        experience_description: 'No experience data provided',\n        from_date: '2000-01-01',\n        to_date: '2000-01-01',\n        salary: 0,\n        idx: 1,\n        parentfield: 'experience',\n        parenttype: 'Job Applicant',\n        doctype: 'Experience Certifications'\n      }\n    });\n  }\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6528,
+        416
+      ],
+      "id": "1e8a96da-da6a-4d18-876e-1609e708cc62",
+      "name": "Split Experience Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generated by Copilot\n// Collect experience data directly from Split Experience Data and prepare for Job Applicant update\nconst items = $input.all();\nconst experienceEntries = [];\nlet jobApplicantName = '';\n\nfor (const item of items) {\n  // Get the job applicant name from the first item\n  if (!jobApplicantName && item.json.job_applicant) {\n    jobApplicantName = item.json.job_applicant;\n  }\n  \n  // Collect experience data for child table (no need to create separate documents)\n  experienceEntries.push({\n    company: item.json.company,\n    designation: item.json.designation,\n    years_of_experience: item.json.years_of_experience,\n    experience_description: item.json.experience_description,\n    from_date: item.json.from_date,\n    to_date: item.json.to_date,\n    salary: item.json.salary,\n    idx: experienceEntries.length + 1\n  });\n}\n\nreturn [{\n  json: {\n    job_applicant_name: jobApplicantName,\n    experience_certifications: experienceEntries,\n    total_experience_entries: experienceEntries.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7120,
+        416
+      ],
+      "id": "2387edcf-1bd6-4d69-afcd-4a35cb0cfdad",
+      "name": "Collect Experience Data"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "docType": "Job%20Applicant",
+        "properties": {
+          "customProperty": [
             {
               "field": "experience",
-              "value": "={{ $json.experience }}"
+              "value": "={{ $json.experience_certifications }}"
             },
             {}
           ]
@@ -478,11 +503,11 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        5904,
-        224
+        7424,
+        416
       ],
-      "id": "70414217-8359-4948-8315-3d7b2f7ef8e8",
-      "name": "Create a document",
+      "id": "e5ff90f2-9893-43a8-b241-b83f700b46a6",
+      "name": "Update Job Applicant Experience",
       "credentials": {
         "erpNextApi": {
           "id": "PCyfMt7tI6h55Qt2",
@@ -497,11 +522,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -560,
-        176
+        -256,
+        368
       ],
       "name": "Get Field Names",
-      "id": "d70026f1-a16f-4214-9e25-13c88f5f9c1c"
+      "id": "27d1d2b0-3e7f-4ffc-b5f3-bfd99a3bc22e"
     },
     {
       "parameters": {
@@ -513,10 +538,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -784,
-        176
+        -480,
+        368
       ],
-      "id": "ba59ffb2-19e3-4a40-8dbf-4feb690fb567",
+      "id": "a92d3c22-bfc6-4ab8-aff8-b2824b88f362",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
@@ -532,10 +557,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1392,
-        464
+        1712,
+        656
       ],
-      "id": "7155d117-505c-49ac-8055-da285b1c0d1e",
+      "id": "3345f74a-b5ba-40da-8a9f-c99e9bf664ad",
       "name": "Code1"
     },
     {
@@ -552,10 +577,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        -960,
-        -128
+        -656,
+        64
       ],
-      "id": "d098cf5f-c94c-4a62-b11b-2769b04dda80",
+      "id": "d12ec079-57fd-48c0-81e1-cbe1dd64a7d2",
       "name": "Get many documents",
       "credentials": {
         "erpNextApi": {
@@ -569,10 +594,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1616,
-        160
+        1936,
+        352
       ],
-      "id": "08165156-1e5a-47a6-ad5f-33468c637e38",
+      "id": "d0b9fe5f-198b-43d8-b23b-922c84c607da",
       "name": "Merge1"
     },
     {
@@ -582,10 +607,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1840,
-        160
+        2160,
+        352
       ],
-      "id": "efb52ac7-73dd-477a-93fe-a691f330b669",
+      "id": "4f5b2fdb-c416-4a8b-85ce-bdc9b4393ccb",
       "name": "Combine Designations and Candidate Data"
     },
     {
@@ -598,10 +623,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2064,
-        160
+        2384,
+        352
       ],
-      "id": "f3ee621a-44ca-4ead-8bfd-2aa4f7b7fa6f",
+      "id": "701dfd23-7e8c-44d7-bcdb-3224cde46cc3",
       "name": "Designation Scorer"
     },
     {
@@ -612,10 +637,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2192,
-        384
+        2512,
+        576
       ],
-      "id": "b8e2a4f4-4f69-46e3-99d9-09f236fbf5fc",
+      "id": "a4c55b2f-56cf-4991-a265-143912f6ea2c",
       "name": "Structured Output Parser1"
     },
     {
@@ -625,10 +650,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2432,
-        160
+        2752,
+        352
       ],
-      "id": "07689635-1887-46d3-9a9a-03d96113b2af",
+      "id": "b2c4c954-47f5-429c-8ff0-562386741004",
       "name": "Designation Logic"
     },
     {
@@ -686,10 +711,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        2656,
-        160
+        2976,
+        352
       ],
-      "id": "a7832645-6f0b-44b2-9c83-e62c532751df",
+      "id": "63ac168a-75f6-4f17-a642-4ca25df939f4",
       "name": "Route Switch"
     },
     {
@@ -701,10 +726,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2880,
-        96
+        3200,
+        288
       ],
-      "id": "2902d135-01f6-444e-bba1-38a54f1484b7",
+      "id": "a8d27ab9-a9b6-4bcc-8073-657094704e44",
       "name": "AI Designation Assigner"
     },
     {
@@ -714,10 +739,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3232,
-        96
+        3552,
+        288
       ],
-      "id": "e79ee454-6e5e-4787-a72b-5c1b68b5ac94",
+      "id": "b6593d73-d514-421a-ac25-a6e4d3f75f2d",
       "name": "Process AI Designation"
     },
     {
@@ -725,10 +750,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3456,
-        240
+        3776,
+        432
       ],
-      "id": "554b7ee2-0512-4444-9001-3b8b21cb2f00",
+      "id": "7c26a36a-0943-4292-be40-8fe6f586115c",
       "name": "Merge3"
     },
     {
@@ -738,10 +763,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3680,
-        240
+        4000,
+        432
       ],
-      "id": "c229d263-f887-4b7e-b72b-6ed7d7b73473",
+      "id": "4bd58c90-b5eb-4496-bd7d-f48bac64b222",
       "name": "Code3"
     },
     {
@@ -762,10 +787,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        1040,
-        464
+        1360,
+        656
       ],
-      "id": "8ffaf4cd-9797-425c-a6df-a3b763c70703",
+      "id": "a888aab0-7c13-43c5-9854-6d3852c1c99a",
       "name": "Resume Parser"
     },
     {
@@ -823,10 +848,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4128,
-        208
+        4448,
+        400
       ],
-      "id": "9ddbc42d-1422-455e-b711-d0189ef1b088",
+      "id": "e2ae5099-0c15-44db-ba8c-bb9a33effc62",
       "name": "Designation Check Switch"
     },
     {
@@ -836,10 +861,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5280,
-        464
+        5600,
+        656
       ],
-      "id": "dd8dc02f-19a0-4f2f-a986-c886a1470df7",
+      "id": "cbdd46ff-8c3d-44ef-9d61-d725ace35c9e",
       "name": "Post Designation Creation"
     },
     {
@@ -849,10 +874,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5504,
-        480
+        5824,
+        672
       ],
-      "id": "05984e2e-fec6-454e-a259-af3fdca89ffa",
+      "id": "cc511c6a-9490-48fc-8aff-4a19e1975d61",
       "name": "Designation Verification"
     },
     {
@@ -860,10 +885,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        5680,
-        224
+        6000,
+        416
       ],
-      "id": "a6930c86-0ea2-4c4b-be37-61b3bd2609bb",
+      "id": "0a2a81c1-4b28-4bb5-a38a-8c8cb4077976",
       "name": "Final Merge"
     },
     {
@@ -873,10 +898,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5424,
-        -32
+        5744,
+        160
       ],
-      "id": "19578653-adf0-4768-abb2-2fef75e191ad",
+      "id": "f63208f8-c099-40c1-91e0-4916cd7a9f21",
       "name": "Process Experience Data"
     },
     {
@@ -892,10 +917,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1040,
-        672
+        1360,
+        864
       ],
-      "id": "75e66029-9a8f-4a51-8ca2-f17a1bf7e88d",
+      "id": "2de99053-8efc-429a-800a-68967ea3b6a1",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -917,10 +942,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        2064,
-        384
+        2384,
+        576
       ],
-      "id": "90647dcf-5884-4d9d-8288-473096aaeaee",
+      "id": "b2e05582-3bdd-4b58-bc6a-5f0ea6af00da",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
@@ -944,10 +969,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        4832,
-        320
+        5152,
+        512
       ],
-      "id": "95fc188d-7c2c-437a-a103-2919e7af8dca",
+      "id": "dbe1f528-f710-4c5a-8ba5-bc86659dc689",
       "name": "Create a document1",
       "credentials": {
         "erpNextApi": {
@@ -964,10 +989,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4480,
-        336
+        4800,
+        528
       ],
-      "id": "84765a86-5e65-47d2-909a-52f9d28b114e",
+      "id": "eef9d458-d99d-4308-8c69-404858002294",
       "name": "Pre-Designation Check"
     },
     {
@@ -1026,10 +1051,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4688,
-        512
+        5008,
+        704
       ],
-      "id": "726e58c9-ccd0-448f-aefe-c1f4739bd8db",
+      "id": "32500ba9-5c8b-484f-90ae-6b6015cccf28",
       "name": "Skip Creation Switch"
     },
     {
@@ -1037,10 +1062,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -336,
-        368
+        -32,
+        560
       ],
-      "id": "d238f78b-617f-46fe-831f-11428bc6394d",
+      "id": "b6a8cc8f-087b-41d9-a34c-00ff11cc8ed1",
       "name": "Merge2"
     },
     {
@@ -1050,10 +1075,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -96,
-        368
+        224,
+        560
       ],
-      "id": "56ca9811-07cd-4544-95a6-4b861278c9f6",
+      "id": "8eb1f11c-e357-4def-91d6-aae6b0e17e94",
       "name": "Combine Data1"
     },
     {
@@ -1080,13 +1105,13 @@
           }
         }
       },
-      "id": "d4f7aaf4-0c9f-46dd-b4b5-285c2ba7a959",
+      "id": "628f742a-f86f-41f2-9637-e605f7b8de82",
       "name": "Extract Images from PDF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        144,
-        368
+        464,
+        560
       ]
     },
     {
@@ -1096,10 +1121,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        368,
-        368
+        688,
+        560
       ],
-      "id": "0e1e9fae-6b85-49e2-9f47-92696803e5b4",
+      "id": "1a64f5c8-7adf-4ad4-a3ee-917079fc9e23",
       "name": "Prepare for Vision Analysis"
     },
     {
@@ -1134,10 +1159,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        592,
-        368
+        912,
+        560
       ],
-      "id": "51ca3fdb-c8e9-4c32-b78b-609ff599f2ba",
+      "id": "a248e875-7ba9-49a5-a597-4548f313ab67",
       "name": "Image Extraction Check"
     },
     {
@@ -1157,13 +1182,13 @@
         },
         "options": {}
       },
-      "id": "eef1c523-4916-4241-a215-8754951efc2a",
+      "id": "41a093ed-2e4b-4af8-af80-00b673a31020",
       "name": "Extract Text Fallback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        160,
-        560
+        480,
+        752
       ]
     },
     {
@@ -1173,10 +1198,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        560
+        704,
+        752
       ],
-      "id": "74a58fc9-20fb-4b42-ac9d-7992aea1d71a",
+      "id": "9d7678ad-7fb7-464b-9e10-165eb0e203bc",
       "name": "Prepare Text Analysis"
     },
     {
@@ -1184,11 +1209,52 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        816,
-        464
+        1136,
+        656
       ],
-      "id": "0228eace-7b67-4242-82b7-8676b824f550",
+      "id": "a27cbd14-716f-4bf3-8e15-a7570bc347db",
       "name": "Merge Processing Routes"
+    },
+    {
+      "parameters": {
+        "path": "df313a6d-b069-4028-b4cb-d49ae75b69e9",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2752,
+        640
+      ],
+      "id": "725ae412-a822-4db2-964d-453bf36fb83d",
+      "name": "Webhook",
+      "webhookId": "df313a6d-b069-4028-b4cb-d49ae75b69e9"
+    },
+    {
+      "parameters": {
+        "formTitle": "upload",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "file",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "buttonLabel": "Submit"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -2912,
+        496
+      ],
+      "id": "62c98e95-a65a-45e0-af9e-1602338594f2",
+      "name": "On form submission",
+      "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     }
   ],
   "connections": {
@@ -1230,32 +1296,6 @@
         [
           {
             "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "On form submission": {
-      "main": [
-        [
-          {
-            "node": "Classification Engine1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Get many documents",
             "type": "main",
             "index": 0
           }
@@ -1339,6 +1379,28 @@
       ]
     },
     "Create a document": {
+      "main": [
+        [
+          {
+            "node": "Split Experience Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Experience Data": {
+      "main": [
+        [
+          {
+            "node": "Collect Experience Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Experience Data": {
       "main": [
         []
       ]
@@ -1551,13 +1613,7 @@
     },
     "Designation Verification": {
       "main": [
-        [
-          {
-            "node": "Final Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
+        []
       ]
     },
     "Final Merge": {
@@ -1640,13 +1696,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Create a document1",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Merge2": {
@@ -1731,6 +1781,58 @@
         [
           {
             "node": "Resume Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Classification Engine1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Get many documents",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Classification Engine1",
             "type": "main",
             "index": 0
           }

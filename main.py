@@ -17,6 +17,15 @@ import uuid
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("imp")
 
+# PDF processing - PyMuPDF is much faster than PyPDF2
+try:
+    import fitz  # PyMuPDF
+    PYMUPDF_AVAILABLE = True
+    logger.info("✅ PyMuPDF available for fast PDF processing")
+except ImportError:
+    PYMUPDF_AVAILABLE = False
+    logger.warning("⚠️ PyMuPDF not available, using PyPDF2 fallback")
+
 # --- Enums and Models ---
 class ProcessingTier(Enum):
     HIGH_QUALITY = 'high_quality'
@@ -590,31 +599,45 @@ async def extract_text_from_pdf(background_tasks: BackgroundTasks, file: UploadF
             shutil.copyfileobj(file.file, temp_pdf)
             temp_pdf_path = temp_pdf.name
 
-        # Extract text using PyPDF2 or pdfplumber (basic implementation)
+        # Extract text using PyMuPDF (faster) or PyPDF2 (fallback)
         try:
-            import PyPDF2
-            with open(temp_pdf_path, 'rb') as pdf_file:
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
+            if PYMUPDF_AVAILABLE:
+                # Use PyMuPDF for much faster text extraction
+                doc = fitz.open(temp_pdf_path)
                 text_content = ""
-                for page_num, page in enumerate(pdf_reader.pages):
-                    page_text = page.extract_text()
+                for page_num in range(len(doc)):
+                    page = doc.load_page(page_num)
+                    page_text = page.get_text()
                     text_content += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
-        except ImportError:
-            # Fallback to basic text extraction
-            logger.warning("PyPDF2 not available, using basic text extraction")
-            text_content = f"[Text extraction from {received_filename}]\n\nNote: Advanced text extraction requires PyPDF2 package.\nPlease install with: pip install PyPDF2"
+                doc.close()
+                extraction_method = "pymupdf_fast"
+            else:
+                # Fallback to PyPDF2 (slower but reliable)
+                import PyPDF2
+                with open(temp_pdf_path, 'rb') as pdf_file:
+                    pdf_reader = PyPDF2.PdfReader(pdf_file)
+                    text_content = ""
+                    for page_num, page in enumerate(pdf_reader.pages):
+                        page_text = page.extract_text()
+                        text_content += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
+                extraction_method = "pypdf2_fallback"
+        except Exception as extraction_error:
+            logger.error(f"❌ Text extraction failed: {extraction_error}")
+            text_content = f"[Text extraction from {received_filename}]\n\nError: {str(extraction_error)}\nPlease ensure the PDF is not corrupted or password-protected."
+            extraction_method = "error_fallback"
         
         # Schedule cleanup
         background_tasks.add_task(cleanup_temp_files, [temp_pdf_path])
         
-        logger.info(f"✅ Successfully extracted text ({len(text_content)} characters)")
+        logger.info(f"✅ Successfully extracted text ({len(text_content)} characters) using {extraction_method}")
         
         return JSONResponse({
             "success": True,
             "text_content": text_content,
             "character_count": len(text_content),
             "original_filename": received_filename,
-            "extraction_method": "text_only"
+            "extraction_method": extraction_method,
+            "performance_note": "PyMuPDF provides 5-10x faster extraction than PyPDF2" if extraction_method == "pymupdf_fast" else "Consider installing PyMuPDF for faster processing"
         })
         
     except Exception as e:
