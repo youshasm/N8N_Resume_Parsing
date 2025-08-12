@@ -47,13 +47,13 @@
         },
         "options": {}
       },
-      "id": "38102679-9016-4035-97fb-81ccc16bedb9",
+      "id": "a97ce149-0c37-4af1-928e-7e7d4475f500",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -1600,
-        720
+        -544,
+        -208
       ]
     },
     {
@@ -65,11 +65,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        576,
-        656
+        1760,
+        -336
       ],
       "typeVersion": 1,
-      "id": "f0f1b9f7-a0dd-4066-9528-d311862550a8",
+      "id": "c32daa3e-c8d1-49f2-a6c6-85b1a1181049",
       "name": "Sticky Note3"
     },
     {
@@ -80,11 +80,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -656,
-        832
+        576,
+        -288
       ],
       "typeVersion": 1,
-      "id": "8f99c68b-471d-45ef-95d8-fd1c6ff574d9",
+      "id": "bd6bd10b-b92b-4485-95c9-84f4c7bced5e",
       "name": "Sticky Note1"
     },
     {
@@ -96,26 +96,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2064,
-        656
+        -896,
+        -272
       ],
       "typeVersion": 1,
-      "id": "531ce063-3115-4406-95d6-8604a057c867",
+      "id": "41bce4a3-cfd3-4001-bf8a-9e203eaf3f26",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Move file[0] to binary.file if needed\nreturn $input.all().map(item => {\n  if (item.json.file && Array.isArray(item.json.file) && item.json.file[0]) {\n    item.binary = item.binary || {};\n    item.binary.file = item.binary.file || item.json.file[0];\n    delete item.json.file; // Clean up JSON if you want\n  }\n  return item;\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -608,
-        896
-      ],
-      "id": "65f25c1a-a942-48ad-bee0-7a9bf95728c2",
-      "name": "Code",
-      "disabled": true
     },
     {
       "parameters": {
@@ -135,10 +121,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1152,
-        720
+        -96,
+        -208
       ],
-      "id": "5d5f0f11-245e-41fc-a1d7-368b7b3e86fb",
+      "id": "33a39c0e-ce8e-4b68-9762-b15ef8483c42",
       "name": "Edit Fields1"
     },
     {
@@ -159,36 +145,36 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1152,
-        528
+        -768,
+        -400
       ],
-      "id": "72282f97-749c-405e-ae1f-7d541eeff632",
+      "id": "da2fabec-dba1-4875-8b1d-6803f4a78684",
       "name": "Edit Fields"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "fe313612-16f3-4cde-88ff-d78d2485de27",
+      "id": "8ff17489-3abc-4a80-9cc0-0e0995d4e40c",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1824,
-        720
+        -768,
+        -208
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "07e0d001-5747-4d46-b527-c10c91e9c6ac",
+      "id": "d2050b93-c516-41d2-aeed-17c54375600c",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1376,
-        720
+        -320,
+        -208
       ]
     },
     {
@@ -293,10 +279,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -704,
-        576
+        384,
+        -336
       ],
-      "id": "259dca4a-5c74-42bf-942c-79244f342dd5",
+      "id": "9d3544d2-8fda-47aa-baa6-937cc4d33b8e",
       "name": "Switch1"
     },
     {
@@ -323,13 +309,13 @@
           }
         }
       },
-      "id": "f119fd74-de47-4a3d-89df-b5c03abda094",
+      "id": "32e6f7fa-a783-4140-a2c8-9ee788022b72",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -400,
-        912
+        832,
+        -224
       ],
       "alwaysOutputData": false
     },
@@ -350,10 +336,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -928,
-        608
+        160,
+        -304
       ],
-      "id": "32c22a6e-7a51-4ee3-ba7e-aad8dff60545",
+      "id": "ccc25793-068b-48cc-90c8-86d9b9136ae5",
       "name": "Merge"
     },
     {
@@ -440,18 +426,17 @@
             {
               "field": "designation",
               "value": "={{ $json.selected_designation }}"
-            },
-            {}
+            }
           ]
         }
       },
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        6224,
-        416
+        6144,
+        -416
       ],
-      "id": "ea75679f-ac5c-436c-a1bd-2abda879841d",
+      "id": "7922ffb1-042a-4169-acae-7f6694fa2145",
       "name": "Create a document",
       "credentials": {
         "erpNextApi": {
@@ -462,51 +447,79 @@
     },
     {
       "parameters": {
-        "jsCode": "// Generated by Copilot\n// Split experience data into individual Experience Certifications for ERPNext\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const jobApplicantData = item.json;\n  const experienceArray = jobApplicantData.experience || [];\n  \n  // Store the job applicant document name for reference\n  const jobApplicantName = jobApplicantData.name;\n  \n  if (Array.isArray(experienceArray) && experienceArray.length > 0) {\n    // Create separate items for each experience entry\n    experienceArray.forEach((experience, index) => {\n      result.push({\n        json: {\n          job_applicant: jobApplicantName,\n          company: experience.company || 'Not Specified',\n          designation: experience.designation || 'Not Specified',\n          years_of_experience: experience.years_of_experience || '0',\n          experience_description: experience.experience_description || 'No description provided',\n          from_date: experience.from_date || '2000-01-01',\n          to_date: experience.to_date || '2000-01-01',\n          salary: experience.salary || 0,\n          idx: index + 1,\n          parentfield: 'experience',\n          parenttype: 'Job Applicant',\n          doctype: 'Experience Certifications'\n        }\n      });\n    });\n  } else {\n    // If no experience data, create a default entry\n    result.push({\n      json: {\n        job_applicant: jobApplicantName,\n        company: 'Not Specified',\n        designation: 'Not Specified',\n        years_of_experience: '0',\n        experience_description: 'No experience data provided',\n        from_date: '2000-01-01',\n        to_date: '2000-01-01',\n        salary: 0,\n        idx: 1,\n        parentfield: 'experience',\n        parenttype: 'Job Applicant',\n        doctype: 'Experience Certifications'\n      }\n    });\n  }\n}\n\nreturn result;"
+        "jsCode": "// Generated by Copilot\n// Split experience data into individual Experience Certifications for ERPNext\n// Skip processing if no meaningful experience is provided\nconst items = $input.all();\nconst result = [];\n\nconsole.log(`Split Experience Data received ${items.length} items`);\n\nfor (const item of items) {\n  const jobApplicantData = item.json;\n  \n  // Log all available fields for debugging\n  console.log(`Job Applicant Data Keys: ${Object.keys(jobApplicantData).join(', ')}`);\n  \n  const experienceArray = jobApplicantData.experience || [];\n  \n  // Get the ERPNext document identifiers from the created Job Applicant\n  const documentName = jobApplicantData.name; // ERPNext document name\n  const registrationNumber = jobApplicantData.imp_registration_number; // Custom field\n  const applicantName = jobApplicantData.applicant_name; // Applicant's actual name\n  \n  // Debug: Log the captured identifiers\n  console.log(`Captured Document Name: ${documentName}`);\n  console.log(`Captured Registration Number: ${registrationNumber}`);\n  console.log(`Captured Applicant Name: ${applicantName}`);\n  console.log(`Experience Array Length: ${experienceArray.length}`);\n  \n  // Check if we have valid experience data\n  const hasValidExperience = Array.isArray(experienceArray) && \n    experienceArray.length > 0 && \n    experienceArray.some(exp => \n      exp.company && exp.company.trim() !== '' && exp.company !== 'Not Specified' &&\n      exp.designation && exp.designation.trim() !== '' && exp.designation !== 'Not Specified'\n    );\n  \n  if (hasValidExperience) {\n    console.log(`Processing ${experienceArray.length} experience entries for ${documentName}`);\n    \n    // Create separate items for each valid experience entry\n    experienceArray.forEach((experience, index) => {\n      // Only include experience entries with meaningful data\n      if (experience.company && experience.company.trim() !== '' && experience.company !== 'Not Specified' &&\n          experience.designation && experience.designation.trim() !== '' && experience.designation !== 'Not Specified') {\n        result.push({\n          json: {\n            job_applicant_document_name: documentName, // ERPNext document identifier\n            job_applicant_registration: registrationNumber, // Registration number\n            job_applicant_name: applicantName, // Applicant's name\n            company: experience.company,\n            designation: experience.designation,\n            years_of_experience: experience.years_of_experience || '0',\n            experience_description: experience.experience_description || 'No description provided',\n            from_date: experience.from_date || '2000-01-01',\n            to_date: experience.to_date || '2000-01-01',\n            salary: experience.salary || 0,\n            idx: index + 1,\n            parentfield: 'experience',\n            parenttype: 'Job Applicant',\n            doctype: 'Experience Certifications'\n          }\n        });\n      }\n    });\n  } else {\n    console.log(`No valid experience found for ${documentName}. Experience array: ${JSON.stringify(experienceArray)}`);\n  }\n  \n  // If no valid experience found, return empty result\n  // This will cause the workflow to skip experience processing\n}\n\n// Return results only if we have valid experience data\nif (result.length === 0) {\n  console.log('No valid experience data found - workflow will stop here');\n  return [];\n}\n\nconsole.log(`Returning ${result.length} experience entries`);\nreturn result;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6528,
-        416
+        6352,
+        -640
       ],
-      "id": "1e8a96da-da6a-4d18-876e-1609e708cc62",
+      "id": "157c89a2-4adb-486a-a745-8975215c1bd2",
       "name": "Split Experience Data"
     },
     {
       "parameters": {
-        "jsCode": "// Generated by Copilot\n// Collect experience data directly from Split Experience Data and prepare for Job Applicant update\nconst items = $input.all();\nconst experienceEntries = [];\nlet jobApplicantName = '';\n\nfor (const item of items) {\n  // Get the job applicant name from the first item\n  if (!jobApplicantName && item.json.job_applicant) {\n    jobApplicantName = item.json.job_applicant;\n  }\n  \n  // Collect experience data for child table (no need to create separate documents)\n  experienceEntries.push({\n    company: item.json.company,\n    designation: item.json.designation,\n    years_of_experience: item.json.years_of_experience,\n    experience_description: item.json.experience_description,\n    from_date: item.json.from_date,\n    to_date: item.json.to_date,\n    salary: item.json.salary,\n    idx: experienceEntries.length + 1\n  });\n}\n\nreturn [{\n  json: {\n    job_applicant_name: jobApplicantName,\n    experience_certifications: experienceEntries,\n    total_experience_entries: experienceEntries.length\n  }\n}];"
+        "jsCode": "// Generated by Copilot\n// Collect experience data directly from Split Experience Data and prepare for Job Applicant update\n// Only process if we have valid experience data\nconst items = $input.all();\nconst experienceEntries = [];\nlet jobApplicantDocumentName = '';\nlet jobApplicantRegistration = '';\nlet jobApplicantName = '';\n\n// Function to extract years as integer from strings like \"13 years\", \"5 months\", etc.\nfunction extractYearsAsInteger(yearsString) {\n  if (!yearsString || typeof yearsString !== 'string') {\n    return 0;\n  }\n  \n  // Extract numbers from the string\n  const numbers = yearsString.match(/\\d+/g);\n  if (!numbers || numbers.length === 0) {\n    return 0;\n  }\n  \n  const value = parseInt(numbers[0]);\n  \n  // If the string contains \"month\" or \"months\", convert to fraction of year\n  if (yearsString.toLowerCase().includes('month')) {\n    return Math.round(value / 12 * 10) / 10; // Round to 1 decimal place\n  }\n  \n  // Otherwise, assume it's years\n  return value;\n}\n\nconsole.log(`Collect Experience Data received ${items.length} items`);\n\n// If no items received, it means no valid experience was found\nif (items.length === 0) {\n  console.log('No experience items received - skipping experience processing');\n  // Skip experience processing entirely\n  return [];\n}\n\nfor (const item of items) {\n  // Get the job applicant document name (for ERPNext updates)\n  if (!jobApplicantDocumentName && item.json.job_applicant_document_name) {\n    jobApplicantDocumentName = item.json.job_applicant_document_name;\n  }\n  \n  // Get the job applicant registration number from the first item\n  if (!jobApplicantRegistration && item.json.job_applicant_registration) {\n    jobApplicantRegistration = item.json.job_applicant_registration;\n  }\n  \n  // Get the job applicant name from the first item\n  if (!jobApplicantName && item.json.job_applicant_name) {\n    jobApplicantName = item.json.job_applicant_name;\n  }\n  \n  // Collect experience data for child table (no need to create separate documents)\n  experienceEntries.push({\n    designation: item.json.designation,           // Experience Title in ERPNext \n    years_of_experience: extractYearsAsInteger(item.json.years_of_experience),\n    company:item.json.company                // Institution in ERPNext  \n                // Parent doctype\n  });\n}\n\n// Only return data if we have valid experience entries\nif (experienceEntries.length === 0) {\n  console.log('No valid experience entries collected');\n  return [];\n}\n\nconsole.log(`Collected identifiers:`);\nconsole.log(`- Document Name: ${jobApplicantDocumentName}`);\nconsole.log(`- Registration: ${jobApplicantRegistration}`);\nconsole.log(`- Applicant Name: ${jobApplicantName}`);\nconsole.log(`- Experience Entries: ${experienceEntries.length}`);\n\nreturn [{\n  json: {\n    job_applicant_document_name: jobApplicantDocumentName,\n    job_applicant_registration: jobApplicantRegistration,\n    job_applicant_name: jobApplicantName,\n    experience_certifications: experienceEntries,\n    total_experience_entries: experienceEntries.length,\n    processing_note: `Processing ${experienceEntries.length} valid experience entries for document: ${jobApplicantDocumentName} (Registration: ${jobApplicantRegistration})`\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        7120,
-        416
+        6592,
+        -640
       ],
-      "id": "2387edcf-1bd6-4d69-afcd-4a35cb0cfdad",
+      "id": "b2ee947e-c537-4b4e-b805-20c20a01bebe",
       "name": "Collect Experience Data"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6752,
+        -400
+      ],
+      "id": "fd82153d-66a6-41e2-9889-f67d792f6f32",
+      "name": "Merge Job Applicant and Experience"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generated by Copilot\n// Process merged data from Create Job Applicant and Collect Experience Data\n// Combine both outputs into a single JSON structure for ERPNext update\n\nconst items = $input.all();\nlet jobApplicantData = {};\nlet experienceData = {};\n\nconsole.log(`Processing ${items.length} items from merge node`);\n\n// Process all items from the merge node\nfor (const item of items) {\n  const data = item.json;\n  \n  console.log(`Processing item with keys: ${Object.keys(data).join(', ')}`);\n  \n  // Identify Job Applicant data (from Create a document node)\n  // Job Applicant data typically has ERPNext fields like name, creation, modified, etc.\n  if (data.name && (data.creation || data.modified) && !data.experience_certifications) {\n    jobApplicantData = data;\n    console.log(`Found Job Applicant data with name: ${data.name}`);\n    console.log(`Job Applicant fields: ${Object.keys(data).slice(0, 10).join(', ')}...`);\n  }\n  \n  // Identify Experience data (from Collect Experience Data node)\n  if (data.experience_certifications && Array.isArray(data.experience_certifications)) {\n    experienceData = data;\n    console.log(`Found Experience data with ${data.experience_certifications.length} entries`);\n  }\n}\n\n// Validate we have both data sources\nif (!jobApplicantData.name) {\n  console.error('ERROR: No Job Applicant data found in merged items!');\n  console.log('Available items:', items.map(item => Object.keys(item.json)));\n  return [{ json: { error: 'Missing Job Applicant data', items: items.map(item => Object.keys(item.json)) } }];\n}\n\nif (!experienceData.experience_certifications) {\n  console.log('WARNING: No experience data found, proceeding with Job Applicant data only');\n  experienceData = { experience_certifications: [], total_experience_entries: 0 };\n}\n\n// Combine the data - include ALL Job Applicant fields plus experience\nconst combinedData = {\n  // Spread all Job Applicant data first\n  ...jobApplicantData,\n  \n  // Add/override with experience data (MUST come after spread to override empty arrays)\n  experience: experienceData.experience_certifications || [],\n  experience_certifications: experienceData.experience_certifications || [],\n  total_experience_entries: experienceData.total_experience_entries || 0,\n  \n  // Processing metadata\n  processing_note: `Updating Job Applicant ${jobApplicantData.name} with ${experienceData.experience_certifications?.length || 0} experience entries`,\n  job_applicant_created: jobApplicantData.creation,\n  experience_processing_note: experienceData.processing_note || 'No experience processing note'\n};\n\n// IMPORTANT: Ensure experience field is not empty even if Job Applicant had empty experience\nif (experienceData.experience_certifications && experienceData.experience_certifications.length > 0) {\n  combinedData.experience = experienceData.experience_certifications;\n  console.log(`FORCED experience field with ${experienceData.experience_certifications.length} entries`);\n}\n\nconsole.log(`Merged data ready for ERPNext update:`);\nconsole.log(`- Document Name: ${combinedData.name}`);\nconsole.log(`- Registration Number: ${combinedData.imp_registration_number}`);\nconsole.log(`- Experience Entries: ${combinedData.experience_certifications.length}`);\nconsole.log(`- Experience Field Length: ${combinedData.experience.length}`);\nconsole.log(`- Experience Field Content: ${JSON.stringify(combinedData.experience.slice(0, 2))}`);\nconsole.log(`- All fields: ${Object.keys(combinedData).slice(0, 15).join(', ')}...`);\n\nreturn [{ json: combinedData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6976,
+        -688
+      ],
+      "id": "bf22aa06-baa2-4bf0-828e-bd73a54c0086",
+      "name": "Process Merged Data"
     },
     {
       "parameters": {
         "operation": "update",
         "docType": "Job%20Applicant",
+        "documentName": "={{ $json.name }}",
         "properties": {
           "customProperty": [
             {
               "field": "experience",
               "value": "={{ $json.experience_certifications }}"
-            },
-            {}
+            }
           ]
         }
       },
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        7424,
-        416
+        7248,
+        -544
       ],
-      "id": "e5ff90f2-9893-43a8-b241-b83f700b46a6",
+      "id": "827bae8e-acc2-4bd7-84ff-4c7cfee07953",
       "name": "Update Job Applicant Experience",
       "credentials": {
         "erpNextApi": {
@@ -522,11 +535,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -256,
-        368
+        -544,
+        -592
       ],
       "name": "Get Field Names",
-      "id": "27d1d2b0-3e7f-4ffc-b5f3-bfd99a3bc22e"
+      "id": "411a2e07-4b57-41bf-b5ac-524018207c66"
     },
     {
       "parameters": {
@@ -538,10 +551,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -480,
-        368
+        -768,
+        -592
       ],
-      "id": "a92d3c22-bfc6-4ab8-aff8-b2824b88f362",
+      "id": "2cce4d37-b130-4920-bc9c-2090bfd3401f",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
@@ -557,10 +570,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1712,
-        656
+        2752,
+        -224
       ],
-      "id": "3345f74a-b5ba-40da-8a9f-c99e9bf664ad",
+      "id": "592137a6-a330-42e8-ba09-6711a636b373",
       "name": "Code1"
     },
     {
@@ -577,10 +590,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        -656,
-        64
+        -768,
+        -816
       ],
-      "id": "d12ec079-57fd-48c0-81e1-cbe1dd64a7d2",
+      "id": "8b2f9f26-893d-463a-a202-23ad64d5edb5",
       "name": "Get many documents",
       "credentials": {
         "erpNextApi": {
@@ -594,10 +607,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1936,
-        352
+        2976,
+        -544
       ],
-      "id": "d0b9fe5f-198b-43d8-b23b-922c84c607da",
+      "id": "2cb1b551-1c3f-4fc4-90ec-afaaa36fae55",
       "name": "Merge1"
     },
     {
@@ -607,10 +620,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2160,
-        352
+        3200,
+        -544
       ],
-      "id": "4f5b2fdb-c416-4a8b-85ce-bdc9b4393ccb",
+      "id": "11d54085-49ec-4d90-997d-03cc5113144f",
       "name": "Combine Designations and Candidate Data"
     },
     {
@@ -623,10 +636,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2384,
-        352
+        3424,
+        -544
       ],
-      "id": "701dfd23-7e8c-44d7-bcdb-3224cde46cc3",
+      "id": "b219221b-a700-4371-b510-ba5b682f375e",
       "name": "Designation Scorer"
     },
     {
@@ -637,10 +650,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2512,
-        576
+        3504,
+        -320
       ],
-      "id": "a4c55b2f-56cf-4991-a265-143912f6ea2c",
+      "id": "a8aa9a6b-c2ce-49d4-ac81-7e75cfce5c94",
       "name": "Structured Output Parser1"
     },
     {
@@ -650,10 +663,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2752,
-        352
+        3776,
+        -544
       ],
-      "id": "b2c4c954-47f5-429c-8ff0-562386741004",
+      "id": "bcce1a16-0fc6-411c-a775-8bf1bbe5a2ff",
       "name": "Designation Logic"
     },
     {
@@ -711,10 +724,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        2976,
-        352
+        4000,
+        -544
       ],
-      "id": "63ac168a-75f6-4f17-a642-4ca25df939f4",
+      "id": "e5125596-e176-45b7-ad68-0b4b794478bf",
       "name": "Route Switch"
     },
     {
@@ -726,10 +739,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        3200,
-        288
+        4224,
+        -672
       ],
-      "id": "a8d27ab9-a9b6-4bcc-8073-657094704e44",
+      "id": "6c519678-ba54-4c85-86c1-6b817ccdbc92",
       "name": "AI Designation Assigner"
     },
     {
@@ -739,10 +752,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3552,
-        288
+        4576,
+        -672
       ],
-      "id": "b6593d73-d514-421a-ac25-a6e4d3f75f2d",
+      "id": "353cf6e4-2bf3-49a4-857b-3907057282cd",
       "name": "Process AI Designation"
     },
     {
@@ -750,10 +763,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3776,
-        432
+        4800,
+        -416
       ],
-      "id": "7c26a36a-0943-4292-be40-8fe6f586115c",
+      "id": "b1525293-87e5-476c-a30a-89bf37797d7e",
       "name": "Merge3"
     },
     {
@@ -763,10 +776,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4000,
-        432
+        5024,
+        -416
       ],
-      "id": "4bd58c90-b5eb-4496-bd7d-f48bac64b222",
+      "id": "67f8a1fc-7f39-4d6b-bcee-1b899f3f40f3",
       "name": "Code3"
     },
     {
@@ -787,10 +800,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        1360,
-        656
+        2400,
+        -224
       ],
-      "id": "a888aab0-7c13-43c5-9854-6d3852c1c99a",
+      "id": "3bbe99d7-8ae4-40ed-bb55-04abac228d04",
       "name": "Resume Parser"
     },
     {
@@ -848,10 +861,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4448,
-        400
+        5248,
+        -416
       ],
-      "id": "e2ae5099-0c15-44db-ba8c-bb9a33effc62",
+      "id": "718378e6-9786-4b66-9fbb-9cf007a4fef7",
       "name": "Designation Check Switch"
     },
     {
@@ -861,10 +874,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5600,
-        656
+        -544,
+        144
       ],
-      "id": "cbdd46ff-8c3d-44ef-9d61-d725ace35c9e",
+      "id": "57d6d3d5-2c4d-4f15-952b-dc84e07e6738",
       "name": "Post Designation Creation"
     },
     {
@@ -874,10 +887,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5824,
-        672
+        -320,
+        144
       ],
-      "id": "cc511c6a-9490-48fc-8aff-4a19e1975d61",
+      "id": "ae11fece-824b-46d0-9ed8-c9c14aa7bec8",
       "name": "Designation Verification"
     },
     {
@@ -885,23 +898,23 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        6000,
-        416
+        5696,
+        -416
       ],
-      "id": "0a2a81c1-4b28-4bb5-a38a-8c8cb4077976",
+      "id": "f5d460d3-ca86-464f-ab91-16708e5c33bd",
       "name": "Final Merge"
     },
     {
       "parameters": {
-        "jsCode": "// Process experience data into ERPNext child table format\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const experienceText = data.experience || \"Not Specified\";\n  \n  // Initialize experience child table array\n  let experienceChildTable = [];\n  \n  if (experienceText !== \"Not Specified\" && experienceText.trim() !== \"\") {\n    // Parse experience text into structured format\n    try {\n      // Split by common delimiters and clean up\n      const experienceEntries = experienceText\n        .split(/[;,]|\\band\\b|\\bthen\\b/i)\n        .map(entry => entry.trim())\n        .filter(entry => entry.length > 10); // Filter out very short entries\n      \n      experienceEntries.forEach((entry, index) => {\n        // Extract years/duration pattern\n        const yearPattern = /(\\d+)\\s*(year[s]?|month[s]?|yr[s]?)/i;\n        const yearMatch = entry.match(yearPattern);\n        \n        // Extract company name pattern (variations: \"at Company\", \"in Company\", \"with Company\")\n        const companyPattern = /(?:at|in|with|for)\\s+([A-Z][A-Za-z\\s&\\.,\\-]+?)(?:\\s*[-–—]|$|\\s+as\\s|\\s+doing\\s)/i;\n        const companyMatch = entry.match(companyPattern);\n        \n        // Extract job title pattern (variations: \"as Title\", \"working as Title\")\n        const titlePattern = /(?:as|working as)\\s+([A-Za-z\\s&\\.,\\-]+?)(?:\\s*at|\\s*in|\\s*with|\\s*for|\\s*[-–—]|$)/i;\n        const titleMatch = entry.match(titlePattern);\n        \n        // Alternative patterns for different formats\n        let duration = \"Not Specified\";\n        let company = \"Not Specified\";\n        let title = \"Not Specified\";\n        \n        // Extract duration\n        if (yearMatch) {\n          duration = `${yearMatch[1]} ${yearMatch[2].toLowerCase()}`;\n        }\n        \n        // Extract company\n        if (companyMatch) {\n          company = companyMatch[1].trim().replace(/[,;]$/, ''); // Remove trailing punctuation\n        }\n        \n        // Extract job title\n        if (titleMatch) {\n          title = titleMatch[1].trim().replace(/[,;]$/, ''); // Remove trailing punctuation\n        } else {\n          // Try to extract title from the beginning of the entry\n          const words = entry.split(/\\s+/);\n          const commonTitles = ['technician', 'engineer', 'manager', 'developer', 'analyst', 'assistant', 'officer', 'supervisor', 'coordinator', 'specialist'];\n          for (let i = 0; i < Math.min(5, words.length); i++) {\n            if (commonTitles.some(titleWord => words[i].toLowerCase().includes(titleWord))) {\n              title = words.slice(0, i + 1).join(' ');\n              break;\n            }\n          }\n        }\n        \n        // If we couldn't extract company or title, use fallback approach\n        if (company === \"Not Specified\" || title === \"Not Specified\") {\n          // Look for ALL CAPS words (often company names)\n          const allCapsPattern = /\\b[A-Z]{2,}(?:\\s+[A-Z]{2,})*\\b/g;\n          const allCapsMatches = entry.match(allCapsPattern);\n          \n          if (allCapsMatches && company === \"Not Specified\") {\n            company = allCapsMatches[0];\n          }\n          \n          // If still no title, use a generic extraction\n          if (title === \"Not Specified\") {\n            const firstWords = entry.split(/\\s+/).slice(0, 3).join(' ');\n            if (firstWords.length > 5) {\n              title = firstWords;\n            }\n          }\n        }\n        \n        // Create experience entry in ERPNext child table format\n        const experienceEntry = {\n          \"doctype\": \"Experience Certifications\",  // Child table doctype\n          \"company\": company,\n          \"designation\": title,\n          \"years_of_experience\": duration,\n          \"experience_description\": entry.slice(0, 200), // Limit description length\n          \"idx\": index + 1,  // Row index for child table\n          \"parentfield\": \"experience\",  // Parent field name\n          \"parenttype\": \"Job Applicant\"  // Parent doctype\n        };\n        \n        experienceChildTable.push(experienceEntry);\n      });\n      \n      // If no structured entries were created, create a single entry with all text\n      if (experienceChildTable.length === 0) {\n        experienceChildTable.push({\n          \"doctype\": \"Experience Certifications\",\n          \"company\": \"Various Companies\",\n          \"designation\": data.job_title || \"Not Specified\",\n          \"years_of_experience\": \"Not Specified\",\n          \"experience_description\": experienceText.slice(0, 200),\n          \"idx\": 1,\n          \"parentfield\": \"experience\",\n          \"parenttype\": \"Job Applicant\"\n        });\n      }\n    } catch (error) {\n      console.log('Error parsing experience:', error);\n      // Fallback to simple entry\n      experienceChildTable.push({\n        \"doctype\": \"Experience Certifications\",\n        \"company\": \"Not Specified\",\n        \"designation\": data.job_title || \"Not Specified\",\n        \"years_of_experience\": \"Not Specified\",\n        \"experience_description\": experienceText.slice(0, 200),\n        \"idx\": 1,\n        \"parentfield\": \"experience\",\n        \"parenttype\": \"Job Applicant\"\n      });\n    }\n  }\n  \n  // Add the structured experience data to the result\n  result.push({\n    json: {\n      ...data,\n      experience: experienceChildTable,  // ERPNext expects 'experience' field name\n      experience_count: experienceChildTable.length,\n      experience_processing_debug: {\n        original_experience: experienceText,\n        parsed_entries: experienceChildTable.length,\n        processing_method: \"child_table_format\"\n      }\n    }\n  });\n}\n\nreturn result;"
+        "jsCode": "// Process experience data into ERPNext child table format\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const experienceText = data.experience || \"Not Specified\";\n  \n  // Initialize experience child table array\n  let experienceChildTable = [];\n  \n  // Check if experience is already an array (from our previous processing)\n  if (Array.isArray(data.experience) && data.experience.length > 0) {\n    // Experience is already processed as array, use it directly\n    experienceChildTable = data.experience.map((exp, index) => ({\n      \"doctype\": \"Experience Certifications\",\n      \"company\": exp.company || \"Not Specified\",\n      \"designation\": exp.designation || \"Not Specified\", \n      \"years_of_experience\": exp.years_of_experience || 0,\n      \"experience_description\": exp.experience_description || \"No description\",\n      \"from_date\": exp.from_date || \"2000-01-01\",\n      \"to_date\": exp.to_date || \"2000-01-01\",\n      \"salary\": exp.salary || 0,\n      \"idx\": index + 1,\n      \"parentfield\": \"experience\",\n      \"parenttype\": \"Job Applicant\"\n    }));\n    \n    console.log(`Experience already processed as array with ${experienceChildTable.length} entries`);\n  } else if (typeof experienceText === 'string' && experienceText !== \"Not Specified\" && experienceText.trim() !== \"\") {\n    // Parse experience text into structured format\n    try {\n      // Split by common delimiters and clean up\n      const experienceEntries = experienceText\n        .split(/[;,]|\\band\\b|\\bthen\\b/i)\n        .map(entry => entry.trim())\n        .filter(entry => entry.length > 10); // Filter out very short entries\n      \n      experienceEntries.forEach((entry, index) => {\n        // Extract years/duration pattern\n        const yearPattern = /(\\d+)\\s*(year[s]?|month[s]?|yr[s]?)/i;\n        const yearMatch = entry.match(yearPattern);\n        \n        // Extract company name pattern (variations: \"at Company\", \"in Company\", \"with Company\")\n        const companyPattern = /(?:at|in|with|for)\\s+([A-Z][A-Za-z\\s&\\.,\\-]+?)(?:\\s*[-–—]|$|\\s+as\\s|\\s+doing\\s)/i;\n        const companyMatch = entry.match(companyPattern);\n        \n        // Extract job title pattern (variations: \"as Title\", \"working as Title\")\n        const titlePattern = /(?:as|working as)\\s+([A-Za-z\\s&\\.,\\-]+?)(?:\\s*at|\\s*in|\\s*with|\\s*for|\\s*[-–—]|$)/i;\n        const titleMatch = entry.match(titlePattern);\n        \n        // Alternative patterns for different formats\n        let duration = \"Not Specified\";\n        let company = \"Not Specified\";\n        let title = \"Not Specified\";\n        \n        // Extract duration\n        if (yearMatch) {\n          duration = `${yearMatch[1]} ${yearMatch[2].toLowerCase()}`;\n        }\n        \n        // Extract company\n        if (companyMatch) {\n          company = companyMatch[1].trim().replace(/[,;]$/, ''); // Remove trailing punctuation\n        }\n        \n        // Extract job title\n        if (titleMatch) {\n          title = titleMatch[1].trim().replace(/[,;]$/, ''); // Remove trailing punctuation\n        } else {\n          // Try to extract title from the beginning of the entry\n          const words = entry.split(/\\s+/);\n          const commonTitles = ['technician', 'engineer', 'manager', 'developer', 'analyst', 'assistant', 'officer', 'supervisor', 'coordinator', 'specialist'];\n          for (let i = 0; i < Math.min(5, words.length); i++) {\n            if (commonTitles.some(titleWord => words[i].toLowerCase().includes(titleWord))) {\n              title = words.slice(0, i + 1).join(' ');\n              break;\n            }\n          }\n        }\n        \n        // If we couldn't extract company or title, use fallback approach\n        if (company === \"Not Specified\" || title === \"Not Specified\") {\n          // Look for ALL CAPS words (often company names)\n          const allCapsPattern = /\\b[A-Z]{2,}(?:\\s+[A-Z]{2,})*\\b/g;\n          const allCapsMatches = entry.match(allCapsPattern);\n          \n          if (allCapsMatches && company === \"Not Specified\") {\n            company = allCapsMatches[0];\n          }\n          \n          // If still no title, use a generic extraction\n          if (title === \"Not Specified\") {\n            const firstWords = entry.split(/\\s+/).slice(0, 3).join(' ');\n            if (firstWords.length > 5) {\n              title = firstWords;\n            }\n          }\n        }\n        \n        // Create experience entry in ERPNext child table format\n        const experienceEntry = {\n          \"doctype\": \"Experience Certifications\",  // Child table doctype\n          \"company\": company,\n          \"designation\": title,\n          \"years_of_experience\": duration,\n          \"experience_description\": entry.slice(0, 200), // Limit description length\n          \"idx\": index + 1,  // Row index for child table\n          \"parentfield\": \"experience\",  // Parent field name\n          \"parenttype\": \"Job Applicant\"  // Parent doctype\n        };\n        \n        experienceChildTable.push(experienceEntry);\n      });\n      \n      // If no structured entries were created, create a single entry with all text\n      if (experienceChildTable.length === 0) {\n        experienceChildTable.push({\n          \"doctype\": \"Experience Certifications\",\n          \"company\": \"Various Companies\",\n          \"designation\": data.job_title || \"Not Specified\",\n          \"years_of_experience\": \"Not Specified\",\n          \"experience_description\": experienceText.slice(0, 200),\n          \"idx\": 1,\n          \"parentfield\": \"experience\",\n          \"parenttype\": \"Job Applicant\"\n        });\n      }\n    } catch (error) {\n      console.log('Error parsing experience:', error);\n      // Fallback to simple entry\n      experienceChildTable.push({\n        \"doctype\": \"Experience Certifications\",\n        \"company\": \"Not Specified\",\n        \"designation\": data.job_title || \"Not Specified\",\n        \"years_of_experience\": \"Not Specified\",\n        \"experience_description\": experienceText.slice(0, 200),\n        \"idx\": 1,\n        \"parentfield\": \"experience\",\n        \"parenttype\": \"Job Applicant\"\n      });\n    }\n  } else {\n    // No experience data or empty experience\n    console.log('No experience data found or data is empty');\n    experienceChildTable = [];\n  }\n  \n  // Add the structured experience data to the result\n  result.push({\n    json: {\n      ...data,\n      experience: experienceChildTable,  // ERPNext expects 'experience' field name\n      experience_count: experienceChildTable.length,\n      experience_processing_debug: {\n        original_experience: experienceText,\n        parsed_entries: experienceChildTable.length,\n        processing_method: \"child_table_format\"\n      }\n    }\n  });\n}\n\nreturn result;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5744,
-        160
+        5920,
+        -416
       ],
-      "id": "f63208f8-c099-40c1-91e0-4916cd7a9f21",
+      "id": "c27fa548-0401-4530-b430-27e741ccfc89",
       "name": "Process Experience Data"
     },
     {
@@ -917,10 +930,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1360,
-        864
+        2480,
+        32
       ],
-      "id": "2de99053-8efc-429a-800a-68967ea3b6a1",
+      "id": "8d44da1c-fb61-43c2-ac0c-2472bd6342c1",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -942,10 +955,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        2384,
-        576
+        4304,
+        -448
       ],
-      "id": "b2e05582-3bdd-4b58-bc6a-5f0ea6af00da",
+      "id": "9b9ca839-836f-4471-87f9-e0bb4be5f9a1",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
@@ -969,10 +982,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        5152,
-        512
+        5472,
+        -352
       ],
-      "id": "dbe1f528-f710-4c5a-8ba5-bc86659dc689",
+      "id": "daa05c6b-d2a6-4299-84ac-244cd54a7bf8",
       "name": "Create a document1",
       "credentials": {
         "erpNextApi": {
@@ -989,10 +1002,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4800,
-        528
+        -992,
+        144
       ],
-      "id": "eef9d458-d99d-4308-8c69-404858002294",
+      "id": "47d58467-8f93-40ef-a0d4-6dd4ec816585",
       "name": "Pre-Designation Check"
     },
     {
@@ -1051,10 +1064,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        5008,
-        704
+        -768,
+        144
       ],
-      "id": "32500ba9-5c8b-484f-90ae-6b6015cccf28",
+      "id": "4508256f-149b-4bcc-abca-20f0b94169f4",
       "name": "Skip Creation Switch"
     },
     {
@@ -1062,10 +1075,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -32,
-        560
+        1056,
+        -368
       ],
-      "id": "b6a8cc8f-087b-41d9-a34c-00ff11cc8ed1",
+      "id": "e3418fa6-543b-45a6-9f8f-1d0d7c5ec494",
       "name": "Merge2"
     },
     {
@@ -1075,10 +1088,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        560
+        1280,
+        -368
       ],
-      "id": "8eb1f11c-e357-4def-91d6-aae6b0e17e94",
+      "id": "3e7a2bf1-4c13-469b-8a17-945428baad2e",
       "name": "Combine Data1"
     },
     {
@@ -1105,13 +1118,13 @@
           }
         }
       },
-      "id": "628f742a-f86f-41f2-9637-e605f7b8de82",
+      "id": "83785174-bbdc-405c-99fa-a20602eb6a08",
       "name": "Extract Images from PDF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        464,
-        560
+        1504,
+        -368
       ]
     },
     {
@@ -1121,10 +1134,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        688,
-        560
+        1728,
+        -368
       ],
-      "id": "1a64f5c8-7adf-4ad4-a3ee-917079fc9e23",
+      "id": "d1e8c4e1-d0b2-4937-8b7b-7fbadbd5d677",
       "name": "Prepare for Vision Analysis"
     },
     {
@@ -1159,10 +1172,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        912,
-        560
+        1952,
+        -368
       ],
-      "id": "a248e875-7ba9-49a5-a597-4548f313ab67",
+      "id": "9b8ba8e5-0fe6-478b-8ec8-70f033664a69",
       "name": "Image Extraction Check"
     },
     {
@@ -1182,13 +1195,13 @@
         },
         "options": {}
       },
-      "id": "41a093ed-2e4b-4af8-af80-00b673a31020",
+      "id": "4b2095c3-e84d-4d6a-8fe4-3ad1fdef9d00",
       "name": "Extract Text Fallback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        480,
-        752
+        1728,
+        -128
       ]
     },
     {
@@ -1198,10 +1211,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        704,
-        752
+        1952,
+        -128
       ],
-      "id": "9d7678ad-7fb7-464b-9e10-165eb0e203bc",
+      "id": "4202799e-6788-4c6c-af07-f27f6e364106",
       "name": "Prepare Text Analysis"
     },
     {
@@ -1209,10 +1222,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1136,
-        656
+        2176,
+        -224
       ],
-      "id": "a27cbd14-716f-4bf3-8e15-a7570bc347db",
+      "id": "01ab190d-793b-4d96-ad09-0719ad816391",
       "name": "Merge Processing Routes"
     },
     {
@@ -1223,10 +1236,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2752,
-        640
+        -992,
+        -160
       ],
-      "id": "725ae412-a822-4db2-964d-453bf36fb83d",
+      "id": "76cf39c1-6192-4246-88c2-3d9f2fea3e59",
       "name": "Webhook",
       "webhookId": "df313a6d-b069-4028-b4cb-d49ae75b69e9"
     },
@@ -1249,10 +1262,10 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -2912,
-        496
+        -992,
+        -800
       ],
-      "id": "62c98e95-a65a-45e0-af9e-1602338594f2",
+      "id": "00475ae5-124b-4946-bfb6-9294fbf93abb",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     }
@@ -1263,17 +1276,6 @@
         [
           {
             "node": "Classify File Type1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code": {
-      "main": [
-        [
-          {
-            "node": "Convert DOCX to PDF (FastAPI)",
             "type": "main",
             "index": 0
           }
@@ -1328,14 +1330,14 @@
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Convert DOCX to PDF (FastAPI)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Code",
+            "node": "Convert DOCX to PDF (FastAPI)",
             "type": "main",
             "index": 0
           }
@@ -1382,7 +1384,7 @@
       "main": [
         [
           {
-            "node": "Split Experience Data",
+            "node": "Merge Job Applicant and Experience",
             "type": "main",
             "index": 0
           }
@@ -1402,7 +1404,24 @@
     },
     "Collect Experience Data": {
       "main": [
-        []
+        [
+          {
+            "node": "Merge Job Applicant and Experience",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Job Applicant and Experience": {
+      "main": [
+        [
+          {
+            "node": "Update Job Applicant Experience",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Get Field Names": {
@@ -1611,11 +1630,6 @@
         ]
       ]
     },
-    "Designation Verification": {
-      "main": [
-        []
-      ]
-    },
     "Final Merge": {
       "main": [
         [
@@ -1632,6 +1646,11 @@
         [
           {
             "node": "Create a document",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Experience Data",
             "type": "main",
             "index": 0
           }
@@ -1695,8 +1714,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "Merge2": {
