@@ -47,13 +47,13 @@
         },
         "options": {}
       },
-      "id": "c9252cd8-1c9a-4628-b901-7cd2b3424314",
+      "id": "d653df3b-b968-4818-825f-4f6971ed5d6f",
       "name": "Store Classification1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        352,
-        432
+        -7488,
+        560
       ]
     },
     {
@@ -65,11 +65,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2656,
-        304
+        -5184,
+        432
       ],
       "typeVersion": 1,
-      "id": "246ef052-1540-4c33-b42a-72c204254251",
+      "id": "020847a4-3a11-4997-b5aa-b35e51f1ca8e",
       "name": "Sticky Note3"
     },
     {
@@ -80,11 +80,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1472,
-        352
+        -6368,
+        480
       ],
       "typeVersion": 1,
-      "id": "57484516-9119-4b41-9c2a-14de0a9edc74",
+      "id": "5598b0ee-26e3-433b-ae69-f47bcb5a7036",
       "name": "Sticky Note1"
     },
     {
@@ -96,11 +96,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        0,
-        368
+        -7840,
+        496
       ],
       "typeVersion": 1,
-      "id": "78c85454-3ab5-4203-bbf3-4936edd5692c",
+      "id": "79803f2e-b2ba-45b3-a32b-295965198069",
       "name": "Sticky Note"
     },
     {
@@ -121,10 +121,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        800,
-        432
+        -7040,
+        560
       ],
-      "id": "4f8e6103-795f-440f-b6f8-a99fca9c59a2",
+      "id": "64c71eed-b16d-4bc1-a157-e6d490eb0b84",
       "name": "Edit Fields1"
     },
     {
@@ -145,36 +145,36 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        128,
-        240
+        -7712,
+        368
       ],
-      "id": "997a75b7-21f3-4fef-8ea8-e90b68dfae6f",
+      "id": "c0ef8e9a-ca63-441b-8716-a620a0baa8ba",
       "name": "Edit Fields"
     },
     {
       "parameters": {
         "jsCode": "// Enhanced classification logic with binary data preservation\nconst items = $input.all();\nconst processedItems = [];\n\nfunction extractFilename(data) {\n  if (data.converted_pdf) return data.converted_pdf.split(/[\\/]/).pop();\n  if (data.converted_docx) return data.converted_docx.split(/[\\/]/).pop();\n  if (data.original_filename && data.original_filename !== 'undefined' && data.original_filename !== 'null') return data.original_filename;\n  if (data.fileName) return data.fileName;\n  if (data.filename) return data.filename;\n  if (data.name) return data.name;\n  if (Array.isArray(data.file) && data.file.length > 0 && data.file[0].filename) return data.file[0].filename;\n  if (data.document_id) return `document_${data.document_id}.pdf`;\n  return 'document_unknown.pdf';\n}\n\nfunction preserveBinaryData(item) {\n  // Preserve all binary data properties\n  if (item.binary) {\n    return { ...item.binary };\n  }\n  return null;\n}\n\nfunction detectType(filename, mimetype) {\n  const ext = filename.split('.').pop()?.toLowerCase();\n  // Prefer mimetype if it is very specific\n  if (mimetype) {\n    const mt = mimetype.toLowerCase();\n    if (mt.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mt.includes('msword')) {\n      // Some browsers send .docx as msword, so check extension\n      if (ext === 'docx') return 'docx';\n      return 'doc';\n    }\n    if (mt.includes('pdf')) return 'pdf';\n    if (mt.includes('image')) return 'image';\n  }\n  // Fallback to extension\n  if (ext === 'docx') return 'docx';\n  if (ext === 'doc') return 'doc';\n  if (ext === 'pdf') return 'pdf';\n  if (['jpg','jpeg','png'].includes(ext)) return 'image';\n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  const documentId = data.document_id;\n  const mimetype = data.mimeType || data.mimetype || (Array.isArray(data.file) && data.file.length > 0 && data.file[0].mimetype) || undefined;\n  const preferredFilename = extractFilename(data);\n  const detectedType = detectType(preferredFilename, mimetype);\n  const qualityScore = data.quality_score || 0;\n  const confidence = data.confidence || 0;\n  let classificationFactors = [];\n  let processingRequirements = [];\n  if (detectedType === 'pdf') {\n    classificationFactors.push('PDF document detected');\n    processingRequirements.push('OCR processing', 'Text extraction');\n  } else if (detectedType === 'docx') {\n    classificationFactors.push('DOCX document detected');\n    processingRequirements.push('Direct text extraction', 'Format parsing');\n  } else if (detectedType === 'doc') {\n    classificationFactors.push('DOC document detected');\n    processingRequirements.push('Convert to DOCX', 'Direct text extraction');\n  } else if (detectedType === 'image') {\n    classificationFactors.push('Image document detected');\n    processingRequirements.push('OCR processing', 'Image enhancement');\n  } else {\n    classificationFactors.push('Unknown document type');\n    processingRequirements.push('Manual review');\n  }\n  if (qualityScore >= 0.8) {\n    classificationFactors.push('High quality document');\n    processingRequirements.push('Standard processing');\n  } else if (qualityScore >= 0.5) {\n    classificationFactors.push('Medium quality document');\n    processingRequirements.push('Enhanced processing', 'Quality improvement');\n  } else {\n    classificationFactors.push('Low quality document');\n    processingRequirements.push('Manual review', 'Quality enhancement');\n  }\n  const filename = preferredFilename.toLowerCase();\n  let subType = 'general';\n  if (filename.includes('cv') || filename.includes('resume')) {\n    classificationFactors.push('Resume/CV document identified');\n    processingRequirements.push('Personal info extraction', 'Skills parsing');\n    subType = 'resume';\n  } else if (filename.includes('application')) {\n    classificationFactors.push('Application form identified');\n    processingRequirements.push('Form field extraction', 'Structured data parsing');\n    subType = 'application_form';\n  } else if (filename.includes('certificate')) {\n    subType = 'certificate';\n  }\n  processedItems.push({\n    json: {\n      document_id: documentId,\n      document_type: detectedType,\n      sub_type: subType,\n      confidence: confidence,\n      classification_factors: classificationFactors,\n      processing_requirements: processingRequirements,\n      original_filename: preferredFilename,\n      quality_score: qualityScore,\n      classification_metadata: {\n        source_filename: preferredFilename,\n        detected_extension: preferredFilename.split('.').pop()?.toLowerCase(),\n        original_type: data.document_type || 'unknown',\n        final_type: detectedType,\n        mimetype: mimetype\n      }\n    }\n  });\n}\n\nreturn processedItems;"
       },
-      "id": "8676e409-a5fe-415d-888c-4560007fe741",
+      "id": "832f7c05-99fd-4c20-8904-a09223762210",
       "name": "Classification Engine1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        128,
-        432
+        -7712,
+        560
       ]
     },
     {
       "parameters": {
         "jsCode": "// Enhanced file type classification with better detection\nconst items = $input.all();\nconst processedItems = [];\n\nfunction detectFormat(documentType, filename, mimetype) {\n  // Priority 1: Use backend classification if reliable\n  if (documentType && documentType !== 'unknown') {\n    return documentType;\n  }\n  \n  // Priority 2: MIME type analysis\n  if (mimetype) {\n    const mimeType = mimetype.toLowerCase();\n    if (mimeType.includes('pdf')) return 'pdf';\n    if (mimeType.includes('msword') || mimeType.includes('word')) return 'doc';\n    if (mimeType.includes('officedocument.wordprocessingml.document')) return 'docx';\n    if (mimeType.includes('image')) {\n      if (mimeType.includes('jpeg') || mimeType.includes('jpg')) return 'jpg';\n      if (mimeType.includes('png')) return 'png';\n      return 'image';\n    }\n  }\n  \n  // Priority 3: Filename extension\n  if (filename) {\n    const ext = filename.split('.').pop()?.toLowerCase();\n    const validExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];\n    if (validExtensions.includes(ext)) {\n      return ext === 'jpeg' ? 'jpg' : ext;\n    }\n  }\n  \n  return 'unknown';\n}\n\nfor (const item of items) {\n  const data = item.json;\n  \n  const documentType = data.document_type;\n  const filename = data.original_filename || data.fileName || data.filename;\n  const mimetype = data.mimeType || data.mimetype;\n  \n  const format = detectFormat(documentType, filename, mimetype);\n  \n  // Add additional metadata for processing\n  const result = {\n    json: {\n      ...data, // Preserve all original data\n      format: format,\n      file_extension: filename ? filename.split('.').pop()?.toLowerCase() : null,\n      mime_type: mimetype,\n      classification_complete: true,\n      processing_ready: format !== 'unknown',\n      // Ensure filename is preserved\n      original_filename: filename || `document_${data.document_id || 'unknown'}`,\n      // Add debugging info\n      format_detection: {\n        input_type: documentType,\n        input_filename: filename,\n        input_mimetype: mimetype,\n        final_format: format\n      }\n    }\n  };\n  \n  processedItems.push(result);\n}\n\nreturn processedItems;"
       },
-      "id": "5b65669f-bdf8-4d7c-a3e1-be1e6c246d4b",
+      "id": "db626dd9-313b-4ee7-adbf-2013d2cd1101",
       "name": "Classify File Type1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        576,
-        432
+        -7264,
+        560
       ]
     },
     {
@@ -279,10 +279,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1280,
-        304
+        -6560,
+        432
       ],
-      "id": "034ec15d-a497-488f-b56d-5543bccc1f5a",
+      "id": "06ae1e85-ace5-444e-a6f1-56b5e62f478b",
       "name": "Switch1"
     },
     {
@@ -309,13 +309,13 @@
           }
         }
       },
-      "id": "b8c01a7f-147a-40af-b070-5fd8f4ae57f1",
+      "id": "6645b104-31b8-44e6-b5ec-8eed262fcc93",
       "name": "Convert DOCX to PDF (FastAPI)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        1728,
-        416
+        -6112,
+        544
       ],
       "alwaysOutputData": false
     },
@@ -336,10 +336,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1056,
-        336
+        -6784,
+        464
       ],
-      "id": "40354a85-5ba2-4a62-860f-f55c29ed8122",
+      "id": "87d1f577-8f4a-46bc-b4dc-a5f978ab98fe",
       "name": "Merge"
     },
     {
@@ -377,7 +377,7 @@
             },
             {
               "field": "skills",
-              "value": "={{ $json.skills }}"
+              "value": "={{ $json.skills.map((skill, index) => ({ skill: skill.trim(), idx: index + 1 })) }}"
             },
             {
               "field": "father_name",
@@ -430,17 +430,22 @@
             {
               "field": "experience",
               "value": "={{ $json.experience_certifications }}"
-            }
+            },
+            {
+              "field": "qualification_block",
+              "value": "={{ $json.educational_qualification }}"
+            },
+            {}
           ]
         }
       },
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        7792,
-        240
+        512,
+        320
       ],
-      "id": "714504a6-f273-47c2-88df-5e1c474d03b9",
+      "id": "bd2048a5-8fdd-4c2c-82be-3b7ed412d609",
       "name": "Create a document",
       "credentials": {
         "erpNextApi": {
@@ -451,42 +456,57 @@
     },
     {
       "parameters": {
-        "jsCode": "// Generated by Copilot\n// Split experience data into individual Experience Certifications for ERPNext\n// Skip processing if no meaningful experience is provided\nconst items = $input.all();\nconst result = [];\n\nconsole.log(`Split Experience Data received ${items.length} items`);\n\nfor (const item of items) {\n  const jobApplicantData = item.json;\n  \n  // Log all available fields for debugging\n  console.log(`Job Applicant Data Keys: ${Object.keys(jobApplicantData).join(', ')}`);\n  \n  const experienceArray = jobApplicantData.experience || [];\n  \n  // Get the ERPNext document identifiers from the created Job Applicant\n  const documentName = jobApplicantData.name; // ERPNext document name\n  const registrationNumber = jobApplicantData.imp_registration_number; // Custom field\n  const applicantName = jobApplicantData.applicant_name; // Applicant's actual name\n  \n  // Debug: Log the captured identifiers\n  console.log(`Captured Document Name: ${documentName}`);\n  console.log(`Captured Registration Number: ${registrationNumber}`);\n  console.log(`Captured Applicant Name: ${applicantName}`);\n  console.log(`Experience Array Length: ${experienceArray.length}`);\n  \n  // Check if we have valid experience data\n  const hasValidExperience = Array.isArray(experienceArray) && \n    experienceArray.length > 0 && \n    experienceArray.some(exp => \n      exp.company && exp.company.trim() !== '' && exp.company !== 'Not Specified' &&\n      exp.designation && exp.designation.trim() !== '' && exp.designation !== 'Not Specified'\n    );\n  \n  if (hasValidExperience) {\n    console.log(`Processing ${experienceArray.length} experience entries for ${documentName}`);\n    \n    // Create separate items for each valid experience entry\n    experienceArray.forEach((experience, index) => {\n      // Only include experience entries with meaningful data\n      if (experience.company && experience.company.trim() !== '' && experience.company !== 'Not Specified' &&\n          experience.designation && experience.designation.trim() !== '' && experience.designation !== 'Not Specified') {\n        result.push({\n          json: {\n            job_applicant_document_name: documentName, // ERPNext document identifier\n            job_applicant_registration: registrationNumber, // Registration number\n            job_applicant_name: applicantName, // Applicant's name\n            company: experience.company,\n            designation: experience.designation,\n            years_of_experience: experience.years_of_experience || '0',\n            experience_description: experience.experience_description || 'No description provided',\n            from_date: experience.from_date || '2000-01-01',\n            to_date: experience.to_date || '2000-01-01',\n            salary: experience.salary || 0,\n            idx: index + 1,\n            parentfield: 'experience',\n            parenttype: 'Job Applicant',\n            doctype: 'Experience Certifications'\n          }\n        });\n      }\n    });\n  } else {\n    console.log(`No valid experience found for ${documentName}. Experience array: ${JSON.stringify(experienceArray)}`);\n  }\n  \n  // If no valid experience found, return empty result\n  // This will cause the workflow to skip experience processing\n}\n\n// Return results only if we have valid experience data\nif (result.length === 0) {\n  console.log('No valid experience data found - workflow will stop here');\n  return [];\n}\n\nconsole.log(`Returning ${result.length} experience entries`);\nreturn result;"
+        "jsCode": "// Split experience and education data into individual entries for ERPNext\n// Fixed to handle actual data structure from Resume Parser\nconst items = $input.all();\nconst result = [];\n\nconsole.log(`Split Experience and Education Data received ${items.length} items`);\n\nfor (const item of items) {\n  const jobApplicantData = item.json;\n  \n  // Log all available fields for debugging\n  console.log(`Job Applicant Data Keys: ${Object.keys(jobApplicantData).join(', ')}`);\n  \n  // Use the correct experience array - the experience array is already in the right format\n  const experienceArray = jobApplicantData.experience || [];\n  const educationArray = jobApplicantData.qualification_block || jobApplicantData.educational_qualification || [];\n  \n  // Get the ERPNext document identifiers from the created Job Applicant\n  const documentName = jobApplicantData.name; // ERPNext document name\n  const registrationNumber = jobApplicantData.imp_registration_number; // Custom field\n  const applicantName = jobApplicantData.applicant_name; // Applicant's actual name\n  \n  // Debug: Log the captured identifiers\n  console.log(`Captured Document Name: ${documentName}`);\n  console.log(`Captured Registration Number: ${registrationNumber}`);\n  console.log(`Captured Applicant Name: ${applicantName}`);\n  console.log(`Experience Array Length: ${experienceArray.length}`);\n  console.log(`Education Array Length: ${educationArray.length}`);\n  \n  // Log sample data to understand structure\n  if (experienceArray.length > 0) {\n    console.log(`Sample Experience Data:`, JSON.stringify(experienceArray[0], null, 2));\n  }\n  if (educationArray.length > 0) {\n    console.log(`Sample Education Data:`, JSON.stringify(educationArray[0], null, 2));\n  }\n  \n  // Check if we have valid experience data - handle the actual structure\n  const hasValidExperience = Array.isArray(experienceArray) && \n    experienceArray.length > 0 && \n    experienceArray.some(exp => {\n      const company = exp.company || exp.experience_institution || '';\n      const title = exp.designation || exp.experience_title || '';\n      return (company.trim() !== '' && company !== 'Not Specified') ||\n             (title.trim() !== '' && title !== 'Not Specified');\n    });\n  \n  // Check if we have valid education data\n  const hasValidEducation = Array.isArray(educationArray) && \n    educationArray.length > 0 && \n    educationArray.some(edu => {\n      const degree = edu.degree_name || edu.degree || '';\n      const institution = edu.institution_name || edu.institution || '';\n      return (degree.trim() !== '' && degree !== 'Not Specified') ||\n             (institution.trim() !== '' && institution !== 'Not Specified');\n    });\n  \n  console.log(`Has Valid Experience: ${hasValidExperience}`);\n  console.log(`Has Valid Education: ${hasValidEducation}`);\n  \n  // Process experience data - handle the existing ERPNext child table format\n  if (hasValidExperience) {\n    console.log(`Processing ${experienceArray.length} experience entries for ${documentName}`);\n    \n    experienceArray.forEach((experience, index) => {\n      // Handle both old and new field formats\n      const company = experience.company || experience.experience_institution || 'Not Specified';\n      const title = experience.designation || experience.experience_title || 'Not Specified';\n      const duration = experience.years_of_experience || '0';\n      const description = experience.experience_description || 'No description provided';\n      \n      if ((company.trim() !== '' && company !== 'Not Specified') ||\n          (title.trim() !== '' && title !== 'Not Specified')) {\n        result.push({\n          json: {\n            data_type: 'experience',\n            job_applicant_document_name: documentName,\n            job_applicant_registration: registrationNumber,\n            job_applicant_name: applicantName,\n            company: company,\n            designation: title,\n            years_of_experience: duration,\n            experience_description: description,\n            from_date: experience.from_date || '2000-01-01',\n            to_date: experience.to_date || '2000-01-01',\n            salary: experience.salary || 0\n          }\n        });\n        \n        console.log(`Added experience entry: ${title} at ${company}`);\n      }\n    });\n  }\n  \n  // Process education data - handle the existing ERPNext child table format\n  if (hasValidEducation) {\n    console.log(`Processing ${educationArray.length} education entries for ${documentName}`);\n    \n    educationArray.forEach((education, index) => {\n      // Handle both old and new field formats\n      const degree = education.degree_name || education.degree || 'Not Specified';\n      const institution = education.institution_name || education.institution || 'Not Specified';\n      const year = education.year_of_passing || education.year || '2000';\n      const grade = education.grade || 'N/A';\n      const level = education.education_level || 'Bachelors';\n      \n      if ((degree.trim() !== '' && degree !== 'Not Specified') ||\n          (institution.trim() !== '' && institution !== 'Not Specified')) {\n        result.push({\n          json: {\n            data_type: 'education',\n            job_applicant_document_name: documentName,\n            job_applicant_registration: registrationNumber,\n            job_applicant_name: applicantName,\n            degree: degree,\n            institution: institution,\n            year_of_passing: year,\n            grade: grade,\n            education_level: level\n          }\n        });\n        \n        console.log(`Added education entry: ${degree} from ${institution}`);\n      }\n    });\n  }\n  \n  if (!hasValidExperience && !hasValidEducation) {\n    console.log(`No valid experience or education found for ${documentName}`);\n  }\n}\n\n// Return results only if we have valid data\nif (result.length === 0) {\n  console.log('No valid experience or education data found - workflow will stop here');\n  return [];\n}\n\nconsole.log(`Returning ${result.length} total entries (experience + education)`);\nreturn result;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        7072,
-        80
+        -560,
+        208
       ],
-      "id": "b3cd52c6-ff11-4a1b-b31a-102d7e85d00d",
-      "name": "Split Experience Data"
+      "id": "6b764202-0e92-453d-8b33-b4f4d9ac45ec",
+      "name": "Split Experience and Education Data"
     },
     {
       "parameters": {
-        "jsCode": "// Generated by Copilot\n// Collect experience data directly from Split Experience Data and prepare for Job Applicant update\n// Only process if we have valid experience data\nconst items = $input.all();\nconst experienceEntries = [];\nlet jobApplicantDocumentName = '';\nlet jobApplicantRegistration = '';\nlet jobApplicantName = '';\n\n// Function to extract years as integer from strings like \"13 years\", \"5 months\", etc.\nfunction extractYearsAsInteger(yearsString) {\n  if (!yearsString || typeof yearsString !== 'string') {\n    return 0;\n  }\n  \n  // Extract numbers from the string\n  const numbers = yearsString.match(/\\d+/g);\n  if (!numbers || numbers.length === 0) {\n    return 0;\n  }\n  \n  const value = parseInt(numbers[0]);\n  \n  // If the string contains \"month\" or \"months\", convert to fraction of year\n  if (yearsString.toLowerCase().includes('month')) {\n    return Math.round(value / 12 * 10) / 10; // Round to 1 decimal place\n  }\n  \n  // Otherwise, assume it's years\n  return value;\n}\n\nconsole.log(`Collect Experience Data received ${items.length} items`);\n\n// If no items received, it means no valid experience was found\nif (items.length === 0) {\n  console.log('No experience items received - skipping experience processing');\n  // Skip experience processing entirely\n  return [];\n}\n\nfor (const item of items) {\n  // Get the job applicant document name (for ERPNext updates)\n  if (!jobApplicantDocumentName && item.json.job_applicant_document_name) {\n    jobApplicantDocumentName = item.json.job_applicant_document_name;\n  }\n  \n  // Get the job applicant registration number from the first item\n  if (!jobApplicantRegistration && item.json.job_applicant_registration) {\n    jobApplicantRegistration = item.json.job_applicant_registration;\n  }\n  \n  // Get the job applicant name from the first item\n  if (!jobApplicantName && item.json.job_applicant_name) {\n    jobApplicantName = item.json.job_applicant_name;\n  }\n  \n  // Collect experience data for child table (no need to create separate documents)\n  experienceEntries.push({\n    experience_title: item.json.designation,           // Experience Title in ERPNext \n    years_of_experience: extractYearsAsInteger(item.json.years_of_experience),\n    experience_institution: item.json.company,                // institution (ERPNext field name)\n    idx: experienceEntries.length + 1           // Row index for ERPNext  \n                // Parent doctype\n  });\n}\n\n// Only return data if we have valid experience entries\nif (experienceEntries.length === 0) {\n  console.log('No valid experience entries collected');\n  return [];\n}\n\nconsole.log(`Collected identifiers:`);\nconsole.log(`- Document Name: ${jobApplicantDocumentName}`);\nconsole.log(`- Registration: ${jobApplicantRegistration}`);\nconsole.log(`- Applicant Name: ${jobApplicantName}`);\nconsole.log(`- Experience Entries: ${experienceEntries.length}`);\n\nreturn [{\n  json: {\n    job_applicant_document_name: jobApplicantDocumentName,\n    job_applicant_registration: jobApplicantRegistration,\n    job_applicant_name: jobApplicantName,\n    experience_certifications: experienceEntries,\n    total_experience_entries: experienceEntries.length,\n    processing_note: `Processing ${experienceEntries.length} valid experience entries for document: ${jobApplicantDocumentName} (Registration: ${jobApplicantRegistration})`\n  }\n}];"
+        "jsCode": "// Collect experience and education data and prepare for Job Applicant update\n// Only process if we have valid data\nconst items = $input.all();\nconst experienceEntries = [];\nconst educationEntries = [];\nlet jobApplicantDocumentName = '';\nlet jobApplicantRegistration = '';\nlet jobApplicantName = '';\n\n// Function to extract years as integer from strings like \"13 years\", \"5 months\", etc.\nfunction extractYearsAsInteger(yearsString) {\n  if (!yearsString || typeof yearsString !== 'string') {\n    return 0;\n  }\n  \n  const numbers = yearsString.match(/\\d+/g);\n  if (!numbers || numbers.length === 0) {\n    return 0;\n  }\n  \n  const value = parseInt(numbers[0]);\n  \n  if (yearsString.toLowerCase().includes('month')) {\n    return Math.round(value / 12 * 10) / 10;\n  }\n  \n  return value;\n}\n\n// Function to map degree names to education levels\nfunction mapEducationLevel(degreeName) {\n  if (!degreeName || typeof degreeName !== 'string') {\n    return 'Bachelors';\n  }\n  \n  const degree = degreeName.toLowerCase();\n  \n  if (degree.includes('matric') || degree.includes('matriculation') || \n      degree.includes('ssc') || degree.includes('secondary school') ||\n      degree.includes('10th') || degree.includes('grade 10')) {\n    return 'Matric';\n  }\n  \n  if (degree.includes('fsc') || degree.includes('f.sc') || degree.includes('intermediate') ||\n      degree.includes('hssc') || degree.includes('higher secondary') ||\n      degree.includes('12th') || degree.includes('grade 12') || degree.includes('pre-med') ||\n      degree.includes('pre-eng') || degree.includes('ics') || degree.includes('i.c.s')) {\n    return 'FSc';\n  }\n  \n  if (degree.includes('diploma') || degree.includes('dae') || degree.includes('d.a.e') ||\n      degree.includes('polytechnic') || degree.includes('technical') ||\n      degree.includes('certificate') || degree.includes('vocational')) {\n    return 'Diploma';\n  }\n  \n  if (degree.includes('master') || degree.includes('m.a') || degree.includes('m.sc') ||\n      degree.includes('mba') || degree.includes('m.b.a') || degree.includes('m.com') ||\n      degree.includes('ms') || degree.includes('m.s') || degree.includes('mphil') ||\n      degree.includes('m.phil') || degree.includes('postgraduate')) {\n    return 'Masters';\n  }\n  \n  if (degree.includes('phd') || degree.includes('ph.d') || degree.includes('doctorate') ||\n      degree.includes('doctoral')) {\n    return 'Masters';\n  }\n  \n  return 'Bachelors';\n}\n\nconsole.log(`Collect Experience and Education Data received ${items.length} items`);\n\nif (items.length === 0) {\n  console.log('No items received - skipping processing');\n  return [];\n}\n\nfor (const item of items) {\n  if (!jobApplicantDocumentName && item.json.job_applicant_document_name) {\n    jobApplicantDocumentName = item.json.job_applicant_document_name;\n  }\n  \n  if (!jobApplicantRegistration && item.json.job_applicant_registration) {\n    jobApplicantRegistration = item.json.job_applicant_registration;\n  }\n  \n  if (!jobApplicantName && item.json.job_applicant_name) {\n    jobApplicantName = item.json.job_applicant_name;\n  }\n  \n  // Process based on data type\n  if (item.json.data_type === 'experience') {\n    experienceEntries.push({\n      experience_title: item.json.designation,\n      years_of_experience: extractYearsAsInteger(item.json.years_of_experience),\n      experience_institution: item.json.company,\n      idx: experienceEntries.length + 1\n    });\n  } else if (item.json.data_type === 'education') {\n    const educationLevel = mapEducationLevel(item.json.degree);\n    \n    educationEntries.push({\n      education_level: educationLevel,\n      degree_name: item.json.degree,\n      institution_name:item.json.institution,\n      idx: educationEntries.length + 1\n    });\n    \n    console.log(`Mapped degree '${item.json.degree}' to education level '${educationLevel}'`);\n  }\n}\n\nconsole.log(`Collected identifiers:`);\nconsole.log(`- Document Name: ${jobApplicantDocumentName}`);\nconsole.log(`- Registration: ${jobApplicantRegistration}`);\nconsole.log(`- Applicant Name: ${jobApplicantName}`);\nconsole.log(`- Experience Entries: ${experienceEntries.length}`);\nconsole.log(`- Education Entries: ${educationEntries.length}`);\n\nreturn [{\n  json: {\n    job_applicant_document_name: jobApplicantDocumentName,\n    job_applicant_registration: jobApplicantRegistration,\n    job_applicant_name: jobApplicantName,\n    experience_certifications: experienceEntries,\n    educational_qualification: educationEntries,\n    total_experience_entries: experienceEntries.length,\n    total_education_entries: educationEntries.length,\n    processing_note: `Processing ${experienceEntries.length} experience and ${educationEntries.length} education entries for document: ${jobApplicantDocumentName}`\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        7296,
-        80
+        -336,
+        208
       ],
-      "id": "c2076ec2-07f1-42e2-8a2e-ed7931e4d951",
-      "name": "Collect Experience Data"
+      "id": "11a3b09e-aef4-4db7-bc92-9b1a08b53bf4",
+      "name": "Collect Experience and Education Data"
     },
     {
       "parameters": {
-        "jsCode": "// Generated by Copilot\n// Process merged data from Create Job Applicant and Collect Experience Data\n// Combine both outputs into a single JSON structure for ERPNext update\n\nconst items = $input.all();\nlet jobApplicantData = {};\nlet experienceData = {};\n\nconsole.log(`Processing ${items.length} items from merge node`);\n\n// Process all items from the merge node\nfor (const item of items) {\n  const data = item.json;\n  \n  console.log(`Processing item with keys: ${Object.keys(data).join(', ')}`);\n  \n  // Identify Job Applicant data (from Create a document node)\n  // Job Applicant data typically has ERPNext fields like name, creation, modified, etc.\n  if (data.name && (data.creation || data.modified) && !data.experience_certifications) {\n    jobApplicantData = data;\n    console.log(`Found Job Applicant data with name: ${data.name}`);\n    console.log(`Job Applicant fields: ${Object.keys(data).slice(0, 10).join(', ')}...`);\n  }\n  \n  // Identify Experience data (from Collect Experience Data node)\n  if (data.experience_certifications && Array.isArray(data.experience_certifications)) {\n    experienceData = data;\n    console.log(`Found Experience data with ${data.experience_certifications.length} entries`);\n  }\n}\n\n// Validate we have both data sources\nif (!jobApplicantData.name) {\n  console.error('ERROR: No Job Applicant data found in merged items!');\n  console.log('Available items:', items.map(item => Object.keys(item.json)));\n  return [{ json: { error: 'Missing Job Applicant data', items: items.map(item => Object.keys(item.json)) } }];\n}\n\nif (!experienceData.experience_certifications) {\n  console.log('WARNING: No experience data found, proceeding with Job Applicant data only');\n  experienceData = { experience_certifications: [], total_experience_entries: 0 };\n}\n\n// Combine the data - include ALL Job Applicant fields plus experience\nconst combinedData = {\n  // Spread all Job Applicant data first\n  ...jobApplicantData,\n  \n  // Add/override with experience data (MUST come after spread to override empty arrays)\n  experience: experienceData.experience_certifications || [],\n  experience_certifications: experienceData.experience_certifications || [],\n  total_experience_entries: experienceData.total_experience_entries || 0,\n  \n  // Processing metadata\n  processing_note: `Updating Job Applicant ${jobApplicantData.name} with ${experienceData.experience_certifications?.length || 0} experience entries`,\n  job_applicant_created: jobApplicantData.creation,\n  experience_processing_note: experienceData.processing_note || 'No experience processing note'\n};\n\n// IMPORTANT: Ensure experience field is not empty even if Job Applicant had empty experience\nif (experienceData.experience_certifications && experienceData.experience_certifications.length > 0) {\n  combinedData.experience = experienceData.experience_certifications;\n  console.log(`FORCED experience field with ${experienceData.experience_certifications.length} entries`);\n}\n\nconsole.log(`Merged data ready for ERPNext update:`);\nconsole.log(`- Document Name: ${combinedData.name}`);\nconsole.log(`- Registration Number: ${combinedData.imp_registration_number}`);\nconsole.log(`- Experience Entries: ${combinedData.experience_certifications.length}`);\nconsole.log(`- Experience Field Length: ${combinedData.experience.length}`);\nconsole.log(`- Experience Field Content: ${JSON.stringify(combinedData.experience.slice(0, 2))}`);\nconsole.log(`- All fields: ${Object.keys(combinedData).slice(0, 15).join(', ')}...`);\n\nreturn [{ json: combinedData }];"
+        "jsCode": "// Process merged data from Create Job Applicant and Collect Experience/Education Data\n// Combine both outputs into a single JSON structure for ERPNext update\n\nconst items = $input.all();\nlet jobApplicantData = {};\nlet combinedData = {};\n\nconsole.log(`Processing ${items.length} items from merge node`);\n\n// Process all items from the merge node\nfor (const item of items) {\n  const data = item.json;\n  \n  console.log(`Processing item with keys: ${Object.keys(data).join(', ')}`);\n  \n  // Identify Job Applicant data (from Create a document node)\n  if (data.name && (data.creation || data.modified) && !data.experience_certifications && !data.educational_qualification) {\n    jobApplicantData = data;\n    console.log(`Found Job Applicant data with name: ${data.name}`);\n  }\n  \n  // Identify Combined Experience/Education data (from Collect Experience Data node)\n  if (data.experience_certifications || data.educational_qualification) {\n    combinedData = data;\n    console.log(`Found Combined data with ${data.experience_certifications?.length || 0} experience and ${data.educational_qualification?.length || 0} education entries`);\n  }\n}\n\n// Validate we have Job Applicant data\nif (!jobApplicantData.name) {\n  console.error('ERROR: No Job Applicant data found in merged items!');\n  return [{ json: { error: 'Missing Job Applicant data' } }];\n}\n\n// Set default empty data if not found\nif (!combinedData.experience_certifications) {\n  combinedData.experience_certifications = [];\n}\nif (!combinedData.educational_qualification) {\n  combinedData.educational_qualification = [];\n}\n\n// Combine the data - include ALL Job Applicant fields plus experience and education\nconst finalData = {\n  // Spread all Job Applicant data first\n  ...jobApplicantData,\n  \n  // Add/override with experience data\n  experience: combinedData.experience_certifications || [],\n  experience_certifications: combinedData.experience_certifications || [],\n  total_experience_entries: combinedData.total_experience_entries || 0,\n  \n  // Add/override with education data\n  qualification_block: combinedData.educational_qualification || [],\n  educational_qualification: combinedData.educational_qualification || [],\n  total_education_entries: combinedData.total_education_entries || 0,\n  \n  // Processing metadata\n  processing_note: `Updating Job Applicant ${jobApplicantData.name} with ${combinedData.experience_certifications?.length || 0} experience entries and ${combinedData.educational_qualification?.length || 0} education entries`,\n  job_applicant_created: jobApplicantData.creation\n};\n\n// Ensure fields are properly set\nif (combinedData.experience_certifications && combinedData.experience_certifications.length > 0) {\n  finalData.experience = combinedData.experience_certifications;\n  console.log(`Set experience field with ${combinedData.experience_certifications.length} entries`);\n}\n\nif (combinedData.educational_qualification && combinedData.educational_qualification.length > 0) {\n  finalData.qualification_block = combinedData.educational_qualification;\n  console.log(`Set qualification_block field with ${combinedData.educational_qualification.length} entries`);\n}\n\nconsole.log(`Final data ready for ERPNext update:`);\nconsole.log(`- Document Name: ${finalData.name}`);\nconsole.log(`- Experience Entries: ${finalData.experience_certifications.length}`);\nconsole.log(`- Education Entries: ${finalData.educational_qualification.length}`);\n\nreturn [{ json: finalData }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        8000,
-        -112
+        -144,
+        144
       ],
-      "id": "ab1e537f-b680-4131-9a9c-4d36e04f861c",
+      "id": "5cc87b61-955a-4777-9ea7-fb473c62d260",
       "name": "Process Merged Data"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -112,
+        320
+      ],
+      "id": "dc4ee44c-63ca-4cc8-93a2-eeaaed63469e",
+      "name": "Merge Job Applicant Experience and Education"
     },
     {
       "parameters": {
@@ -495,11 +515,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        48
+        -7488,
+        176
       ],
       "name": "Get Field Names",
-      "id": "ddece278-27fc-49c5-8f17-be7d17dc7c00"
+      "id": "8b7799f0-aa7a-436c-923d-afbe08cd208e"
     },
     {
       "parameters": {
@@ -511,10 +531,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        128,
-        48
+        -7712,
+        176
       ],
-      "id": "49ff0ab0-d2dd-4d09-9ce5-96d3d449ea7f",
+      "id": "7229affe-b6f3-400c-b4db-e754ce7d90c1",
       "name": "HTTP Request",
       "credentials": {
         "erpNextApi": {
@@ -525,15 +545,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst outputItems = [];\n\nfunction fixDateFormat(dateStr) {\n  if (typeof dateStr !== 'string') return dateStr;\n  const match = dateStr.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);\n  if (match) {\n    return `${match[3]}-${match[2]}-${match[1]}`;\n  }\n  return dateStr;\n}\n\n\nfor (const item of items) {\n  let rawText = item.json.text;\n  rawText = rawText.replace(/\\\\n/g, '');\n  let parsed;\n  try {\n    parsed = JSON.parse(rawText);\n  } catch (e) {\n    try {\n      parsed = JSON.parse(rawText.trim());\n    } catch (err) {\n      parsed = { output: {} };\n    }\n  }\n  if (parsed && parsed.output) {\n    if (Array.isArray(parsed.output.skills)) {\n      parsed.output.skills = parsed.output.skills.join(', ');\n    }\n\n    // Fix date fields\n    parsed.output.date_of_birth = fixDateFormat(parsed.output.date_of_birth);\n    parsed.output.passport_issue_date = fixDateFormat(parsed.output.passport_issue_date);\n    parsed.output.passport_expiry_date = fixDateFormat(parsed.output.passport_expiry_date);\n    parsed.output.driving_license_issue_date = fixDateFormat(parsed.output.driving_license_issue_date);\n    parsed.output.driving_license_expiry_date = fixDateFormat(parsed.output.driving_license_expiry_date);\n\n    outputItems.push({ json: parsed.output });\n  } else {\n    outputItems.push({ json: {} });\n  }\n}\n\nreturn outputItems;"
+        "jsCode": "// Process parsed resume data and keep skills as array for new table field\nconst items = $input.all();\nconst outputItems = [];\n\nfunction fixDateFormat(dateStr) {\n  if (typeof dateStr !== 'string') return dateStr;\n  const match = dateStr.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);\n  if (match) {\n    return `${match[3]}-${match[2]}-${match[1]}`;\n  }\n  return dateStr;\n}\n\nfor (const item of items) {\n  let rawText = item.json.text;\n  rawText = rawText.replace(/\\\\n/g, '');\n  let parsed;\n  try {\n    parsed = JSON.parse(rawText);\n  } catch (e) {\n    try {\n      parsed = JSON.parse(rawText.trim());\n    } catch (err) {\n      parsed = { output: {} };\n    }\n  }\n  if (parsed && parsed.output) {\n    // Keep skills as array for new table field in ERPNext doctype\n    // Skills field is now a table, so we keep it as array instead of joining to string\n    console.log('Skills data type:', typeof parsed.output.skills);\n    console.log('Skills is array:', Array.isArray(parsed.output.skills));\n    console.log('Skills content:', parsed.output.skills);\n    \n    // Ensure skills is always an array\n    if (typeof parsed.output.skills === 'string') {\n      // If skills is a string, split it into array\n      parsed.output.skills = parsed.output.skills.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);\n    } else if (!Array.isArray(parsed.output.skills)) {\n      // If skills is neither string nor array, set empty array\n      parsed.output.skills = [];\n    }\n    \n    console.log('Final skills array:', parsed.output.skills);\n\n    // Fix date fields\n    parsed.output.date_of_birth = fixDateFormat(parsed.output.date_of_birth);\n    parsed.output.passport_issue_date = fixDateFormat(parsed.output.passport_issue_date);\n    parsed.output.passport_expiry_date = fixDateFormat(parsed.output.passport_expiry_date);\n    parsed.output.driving_license_issue_date = fixDateFormat(parsed.output.driving_license_issue_date);\n    parsed.output.driving_license_expiry_date = fixDateFormat(parsed.output.driving_license_expiry_date);\n\n    outputItems.push({ json: parsed.output });\n  } else {\n    outputItems.push({ json: {} });\n  }\n}\n\nreturn outputItems;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3648,
-        416
+        -4192,
+        544
       ],
-      "id": "758bec3f-4aa2-45ab-92e1-13cac1cf89e8",
+      "id": "6a5e0c77-9e88-452f-a3ed-4f317e73b0d3",
       "name": "Code1"
     },
     {
@@ -550,10 +570,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        128,
-        -176
+        -7712,
+        -64
       ],
-      "id": "51b8bf73-a987-405b-897e-ae792a2e4044",
+      "id": "186795d5-3a0b-49d3-b797-4b858d4d1d6d",
       "name": "Get many documents",
       "credentials": {
         "erpNextApi": {
@@ -567,10 +587,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3872,
-        96
+        -3968,
+        224
       ],
-      "id": "0cbce08c-aa67-4940-94d3-6209eeef6312",
+      "id": "3e3a512f-be26-4bcf-b9c7-a97ce013b3fb",
       "name": "Merge1"
     },
     {
@@ -580,10 +600,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4096,
-        96
+        -3744,
+        224
       ],
-      "id": "16f4df6d-94cb-4d96-80b1-3ecc4d72c2a5",
+      "id": "adbb18c4-9af4-47e5-9e22-26b3aa29cdd9",
       "name": "Combine Designations and Candidate Data"
     },
     {
@@ -596,10 +616,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        4320,
-        96
+        -3520,
+        224
       ],
-      "id": "c4e8045c-311a-4437-a914-0994ea6d24b0",
+      "id": "dcd5f9f1-ba73-469c-8d3e-987e08b14b90",
       "name": "Designation Scorer"
     },
     {
@@ -610,23 +630,23 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        4400,
-        320
+        -3440,
+        448
       ],
-      "id": "bf859f9e-b5b8-4281-96a8-f95da71ea253",
+      "id": "931353c4-e3d5-4b97-a065-e7a23772ebe6",
       "name": "Structured Output Parser1"
     },
     {
       "parameters": {
-        "jsCode": "// Check designation scores and route accordingly\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const scores = item.json.output;\n  let bestDesignation = null;\n  let bestScore = 0;\n  \n  // Find the highest scoring designation\n  for (const [designation, score] of Object.entries(scores)) {\n    const numScore = parseInt(score);\n    if (numScore > bestScore) {\n      bestScore = numScore;\n      bestDesignation = designation;\n    }\n  }\n  \n  // If best score is above 80, use it\n  if (bestScore > 80) {\n    results.push({\n      json: {\n        ...item.json,\n        selected_designation: bestDesignation,\n        designation_score: bestScore,\n        designation_source: 'ai_match',\n        route: 'direct_create'\n      }\n    });\n  } else {\n    // If no score above 80, route to AI assignment\n    results.push({\n      json: {\n        ...item.json,\n        best_designation: bestDesignation,\n        best_score: bestScore,\n        route: 'ai_assign'\n      }\n    });\n  }\n}\n\nreturn results;"
+        "jsCode": "// Check designation scores and route accordingly\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const scores = item.json.output;\n  let bestDesignation = null;\n  let bestScore = 0;\n  \n  // Find the highest scoring designation\n  for (const [designation, score] of Object.entries(scores)) {\n    const numScore = parseInt(score);\n    if (numScore > bestScore) {\n      bestScore = numScore;\n      bestDesignation = designation;\n    }\n  }\n  \n  // If best score is above 80, use it\n  if (bestScore > 80) {\n    results.push({\n      json: {\n        ...item.json,\n        selected_designation: bestDesignation,\n        designation_score: bestScore,\n        designation_source: 'ai_match',\n        route: 'direct_create'\n      }\n    });\n  } else {\n    // If no score above 80, route to AI to generate a new designation\n    results.push({\n      json: {\n        ...item.json,\n        best_designation: bestDesignation,\n        best_score: bestScore,\n        route: 'ai_assign'\n      }\n    });\n  }\n}\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4672,
-        96
+        -3168,
+        224
       ],
-      "id": "b0df248e-e37a-4307-b5eb-9e1be28a6759",
+      "id": "22be9fe1-266c-4d99-b52c-5fc445f5d865",
       "name": "Designation Logic"
     },
     {
@@ -684,49 +704,49 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        4896,
-        96
+        -2944,
+        224
       ],
-      "id": "15f8217e-b3ce-4615-ab35-d1d95ca30643",
+      "id": "c677e73a-2b6c-4ef8-a460-3fc7783db185",
       "name": "Route Switch"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Based on the candidate's profile and the fact that no existing designation scored above 80%, please assign the most appropriate designation from this list: {{ $json.designation_list }}.\n\nCandidate Profile:\n- Skills: {{ $json.skills }}\n- Technical Qualification: {{ $json.technical_qualification }}\n- Experience: {{ $json.experience }}\n- Best matching designation so far: {{ $json.best_designation }} ({{ $json.best_score }}%)\n\nSTRICT OUTPUT REQUIREMENTS:\n- Output ONLY the designation name as a single string.\n- Choose ONLY from the provided designation list.\n- Do NOT include explanations, quotes, or extra text.\n- Return just the designation name.\n\nExample output: Software Developer",
+        "text": "=Based on the candidate's profile and the fact that no existing designation scored above 80%, please create a NEW designation that best fits the candidate's qualifications.\n\nExisting designations (that didn't score above 80%):\n{{ $json.output }}\n\nCandidate Profile:\n- Skills: {{ $json.skills }}\n- Technical Qualification: {{ $json.technical_qualification }}\n- Experience: {{ $json.experience }}\n- Best matching designation so far: {{ $json.best_designation }} ({{ $json.best_score }}%)\n\nSTRICT OUTPUT REQUIREMENTS:\n- Create a NEW, appropriate designation name that is NOT in the existing list above\n- Output ONLY the designation name as a single string\n- The designation should be professional and industry-standard\n- Do NOT include explanations, quotes, or extra text\n- Return just the new designation name\n\nExample output: Senior Data Analyst",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        5120,
-        -32
+        -2512,
+        96
       ],
-      "id": "751d6222-ebc7-434b-9a7c-dc557c1f03b7",
-      "name": "AI Designation Assigner"
+      "id": "52bba1c4-ae6b-4c71-810f-84e7de41ed17",
+      "name": "AI New Designation Creator"
     },
     {
       "parameters": {
-        "jsCode": "// Process AI designation assignment result\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const aiDesignation = item.json.text ? item.json.text.trim() : item.json.output;\n  \n  results.push({\n    json: {\n      ...item.json,\n      selected_designation: aiDesignation,\n      designation_score: 85, // Assign high score for AI-selected designation\n      designation_source: 'ai_assigned'\n    }\n  });\n}\n\nreturn results;"
+        "jsCode": "// Process AI-generated new designation\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const aiDesignation = item.json.text ? item.json.text.trim() : item.json.output;\n  \n  results.push({\n    json: {\n      ...item.json,\n      selected_designation: aiDesignation,\n      designation_score: 85, // Assign high score for AI-generated designation\n      designation_source: 'ai_generated',\n      is_new_designation: true,\n      route: 'create_designation_first' // Need to create this new designation in ERPNext first\n    }\n  });\n}\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5472,
-        -32
+        -2160,
+        96
       ],
-      "id": "c629ac96-5575-494a-9ce4-b85e0984eed6",
-      "name": "Process AI Designation"
+      "id": "1fe68c95-01b2-496d-ab46-7723c9db50cc",
+      "name": "Process New AI Designation"
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        5696,
-        224
+        -1936,
+        352
       ],
-      "id": "1e19c6ff-01d2-484f-b713-8806d5546b52",
+      "id": "cd8d5e47-e0a8-4936-8d96-5ce4fccaa74f",
       "name": "Merge3"
     },
     {
@@ -736,16 +756,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5920,
-        224
+        -1712,
+        352
       ],
-      "id": "3658f336-25be-40f2-889b-97668bd511d1",
+      "id": "178c90ce-9a6d-4991-9e9f-22f1e93dd4e5",
       "name": "Code3"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Analyze this resume/CV document and extract job applicant information into a structured JSON format.\n\nYou are analyzing a visual document (image or PDF page). Carefully examine all text, formatting, and layout elements in the image.\nAnalyze the provided document content image to extract information.\n\n\nYou must return a valid JSON object with a single \"output\" key, containing ALL the following fields:\n{{ $json.fieldnames }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key\n- The \"output\" object MUST contain ALL {{ $json.total_fields }} fields listed above, no more, no less\n- Known languages should be speaking languages (English, Urdu, Arabic), not programming languages\n- Field-specific formats:\n   - Name : Should not be in all CAPS\n   - Dates: YYYY-MM-DD format only (convert any date format you find)\n   - Phone/mobile: Does not include dashes and space \n   - Email: Must be valid email format\n   - Languages: Must be arrays\n   - IDs (passport, CNIC, etc.): without dashes or spaces\n   - Marital Status: Married/Unmarried ( if it is Single then keep it as Unmarried)\n- Boolean fields (has_passport, has_license): true or false\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: 0\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n- Known languages: [\"Urdu\"]\n- Skills: \"Not Specified\"\n- Experience: \"Not Specified\"\n- Boolean fields: false\n- Country : Pakistan\n\nEXPERIENCE EXTRACTION - STRUCTURED APPROACH:\n\n**Experience Sources (Check ALL of these):**\n- Dedicated \"Experience\" or \"Work Experience\" sections\n- \"Employment History\" or \"Professional Experience\" areas\n- \"Career Summary\" or \"Work History\" sections\n- Individual job entries with dates and companies\n- Project work mentioned with duration\n- Internships, apprenticeships, and training programs\n- Freelance or contract work\n- Part-time and full-time positions\n\n**Experience Data to Extract for Each Position:**\n1. **Job Title/Position**: Extract the exact job title or role\n2. **Company/Organization**: Name of the employer or institution\n3. **Duration**: Start and end dates, or total years/months\n4. **Key Responsibilities**: Main duties and achievements\n5. **Skills Used**: Technical and soft skills demonstrated\n\n**Experience Formatting Rules:**\n- Extract EACH job/position as a separate experience entry\n- Include duration even if approximate (e.g., \"2 years\", \"6 months\")\n- Capture company names accurately\n- Include both job title and company for each entry\n- Separate multiple positions with clear delimiters\n- Format: \"[Duration] as [Job Title] at [Company] - [Key Responsibilities]\"\n\n**Example Experience Format:**\n\"3 years as Automation Technician at TECNO AUTO GLASS - Installation and troubleshooting of electrical systems; 1 year as Electrical Technician at MULTICON ENGINEERS LTD - PLC programming and HMI configuration; 1 year as Maintenance Engineer at ACCRESCENT ENGINEERING PVT LTD - VFD installation and motor control systems\"\n\nEXTRACTION GUIDELINES:\n- Pay attention to layout and visual organization\n- Scan for any information in margins or headers\n- Look for structured sections and keywords\n- Extract information from any format or layout\n- Extract personal information (name, contact details, address)\n- Find education details from education/qualification sections\n- Identify work experience from employment history\n- Search for passport/CNIC numbers in personal details\n- Pay attention to dates in various formats throughout the document\n- Extract phone numbers and email addresses from contact information\n- Notice any certifications or licenses mentioned\n- Look for languages mentioned in skills or personal sections\n- Be thorough in extracting all available information\n- If you see partial information, extract what you can\n\nSKILLS EXTRACTION - COMPREHENSIVE APPROACH:\n\n**Primary Skills Sources (Check ALL of these):**\n- Dedicated \"Skills\" section\n- \"Technical Skills\" or \"Core Competencies\" sections\n- \"Key Skills\" or \"Professional Skills\" areas\n- \"Software\" or \"Tools\" sections\n- \"Technologies\" or \"Platforms\" sections\n- Skills mentioned within job descriptions/experience\n- Skills listed in project descriptions\n- Certifications that imply skills (e.g., \"Microsoft Office Certified\" = MS Office skills)\n- Education-related skills (programming languages from CS degree, etc.)\n\n**Skills Categories to Extract:**\n\n1. **Technical/Hard Skills:**\n   - Programming languages (Python, Java, C++, JavaScript, etc.)\n   - Software applications (MS Office, AutoCAD, Photoshop, SAP, etc.)\n   - Operating systems (Windows, Linux, macOS, etc.)\n   - Databases (MySQL, Oracle, PostgreSQL, etc.)\n   - Frameworks and libraries (React, Angular, Django, etc.)\n   - Tools and platforms (Git, Docker, AWS, Azure, etc.)\n   - Industry-specific tools (PLC programming, MATLAB, SolidWorks, etc.)\n\n2. **Professional/Soft Skills:**\n   - Communication, Leadership, Project Management\n   - Problem-solving, Analytical thinking\n   - Team collaboration, Customer service\n   - Time management, Organization\n\n3. **Domain-Specific Skills:**\n   - Engineering skills (Electrical design, Circuit analysis, etc.)\n   - Finance skills (Financial analysis, Budgeting, etc.)\n   - Marketing skills (Digital marketing, SEO, etc.)\n   - Medical skills (Patient care, Medical procedures, etc.)\n\n4. **Language Skills:**\n   - Spoken languages (separate from programming languages)\n   - Language proficiency levels if mentioned\n\n**Skills Extraction Rules:**\n- Extract ALL skills mentioned, even if briefly\n- Include skills from experience descriptions (e.g., \"Managed team of 10\" = Leadership, Team Management)\n- Look for skills in bullet points, paragraphs, and lists\n- Extract skills from project descriptions\n- Include skills implied by job titles or responsibilities\n- Separate technical skills from soft skills when possible\n- Include skill variations (e.g., \"MS Word\" and \"Microsoft Word\" as \"Microsoft Word\")\n- Don't miss skills mentioned in context (e.g., \"Experienced in Python programming\")\n\n**Skill Formatting:**\n- Combine into a comprehensive skills string\n- Separate multiple skills with commas\n- Use standard names (e.g., \"Microsoft Excel\" not \"Excel\", \"Python\" not \"python\")\n- Include skill levels if mentioned (e.g., \"Advanced Excel\", \"Intermediate Python\")\n\nIMPORTANT: Your response must be valid JSON that can be parsed. Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'.",
+        "text": "=Analyze this resume/CV document and extract job applicant information into a structured JSON format.\n\nYou are analyzing a visual document (image or PDF page). Carefully examine all text, formatting, and layout elements in the image.\nAnalyze the provided document content image to extract information.\n\n\nYou must return a valid JSON object with a single \"output\" key, containing ALL the following fields:\n{{ $json.fieldnames }}\n\nSTRICT FORMAT REQUIREMENTS:\n- The response MUST be a JSON object with a single \"output\" key\n- The \"output\" object MUST contain ALL {{ $json.total_fields }} fields listed above, no more, no less\n- Known languages should be speaking languages (English, Urdu, Arabic), not programming languages\n- Field-specific formats:\n   - Name : Should not be in all CAPS\n   - Dates: YYYY-MM-DD format only (convert any date format you find)\n   - Phone/mobile: Does not include dashes and space \n   - Email: Must be valid email format\n   - Languages: Must be arrays\n   - IDs (passport, CNIC, etc.): without dashes or spaces\n   - Marital Status: Married/Unmarried ( if it is Single then keep it as Unmarried)\n- Boolean fields (has_passport, has_license): true or false\n\nDefault values for missing information:\n- Names: \"Unknown Applicant\"\n- Email: \"no_email@placeholder.com\"\n- Phone/mobile: 0\n- Dates: \"2000-01-01\"\n- Regular text fields: \"Not Specified\"\n- Arrays: []\n- Known languages: [\"Urdu\"]\n- Skills: \"Not Specified\"\n- Experience: \"Not Specified\"\n- Boolean fields: false\n- Country : Pakistan\n\nEDUCATION EXTRACTION - COMPREHENSIVE APPROACH:\n\n**Education Sources (Check ALL of these):**\n- Dedicated \"Education\" or \"Educational Qualification\" sections\n- \"Academic Background\" or \"Academic Qualifications\" areas\n- \"Qualifications\" or \"Educational History\" sections\n- Individual degree entries with institutions and dates\n- Certifications and professional qualifications\n- Training programs and courses\n- Online courses and certifications\n- Professional development programs\n\n**Education Data to Extract for Each Qualification:**\n1. **Degree/Qualification**: Extract the exact degree name, diploma, or certification\n2. **Institution/University**: Name of the educational institution\n3. **Year of Passing/Completion**: Graduation year or completion date\n4. **Grade/Percentage**: Academic performance if mentioned\n5. **Field of Study**: Major, specialization, or field of study\n\n**Education Level Classification Rules:**\n- **Matric/Secondary**: SSC, Matriculation, Secondary School Certificate, O-Levels, Grade 10, Class 10\n- **Intermediate/Higher Secondary**: FSc, F.Sc, Intermediate, HSSC, A-Levels, ICS, I.C.S, Pre-Medical, Pre-Engineering, Grade 12, Class 12\n- **Diploma**: DAE (Diploma of Associate Engineer), Diploma in any field, Polytechnic Certificate, Technical Diploma, Vocational Training, Trade Certificate, Professional Certificate\n- **Bachelors**: BA, BS, BSc, B.Sc, BE, B.E, BTech, B.Tech, BBA, B.B.A, BCS, B.Com, Bachelor's degree in any field\n- **Masters**: MA, MS, MSc, M.Sc, ME, M.E, MTech, M.Tech, MBA, M.B.A, MCS, M.Com, Master's degree in any field, MPhil, M.Phil, Postgraduate degree\n\n**Specific Education Examples:**\n- \"DAE Electrical\" → Degree: \"Diploma of Associate Engineer in Electrical\", Level: \"Diploma\"\n- \"FSc Pre-Engineering\" → Degree: \"F.Sc Pre-Engineering\", Level: \"FSc\"\n- \"BS Computer Science\" → Degree: \"Bachelor of Science in Computer Science\", Level: \"Bachelors\"\n- \"Matric Science\" → Degree: \"Matriculation in Science\", Level: \"Matric\"\n- \"MBA Finance\" → Degree: \"Master of Business Administration in Finance\", Level: \"Masters\"\n\n**Education Formatting Rules:**\n- Extract EACH qualification as a separate education entry\n- Include institution name even if abbreviated\n- Capture year of passing/completion accurately\n- Include grade/percentage if mentioned\n- Separate multiple qualifications clearly\n- Always extract the full degree name when possible\n- Map abbreviated degrees to full names (e.g., \"DAE\" → \"Diploma of Associate Engineer\")\n\n**Education Extraction Priority:**\n- Look for formal education sections first\n- Check for degrees mentioned in headers or summaries\n- Scan for institution names and years\n- Extract any academic achievements or honors\n- Include professional certifications as education entries\n- Don't miss education mentioned in experience descriptions\n\nEXPERIENCE EXTRACTION - STRUCTURED APPROACH:\n\n**Experience Sources (Check ALL of these):**\n- Dedicated \"Experience\" or \"Work Experience\" sections\n- \"Employment History\" or \"Professional Experience\" areas\n- \"Career Summary\" or \"Work History\" sections\n- Individual job entries with dates and companies\n- Project work mentioned with duration\n- Internships, apprenticeships, and training programs\n- Freelance or contract work\n- Part-time and full-time positions\n\n**Experience Data to Extract for Each Position:**\n1. **Job Title/Position**: Extract the exact job title or role\n2. **Company/Organization**: Name of the employer or institution\n3. **Duration**: Start and end dates, or total years/months\n4. **Key Responsibilities**: Main duties and achievements\n5. **Skills Used**: Technical and soft skills demonstrated\n\n**Experience Formatting Rules:**\n- Extract EACH job/position as a separate experience entry\n- Include duration even if approximate (e.g., \"2 years\", \"6 months\")\n- Capture company names accurately\n- Include both job title and company for each entry\n- Separate multiple positions with clear delimiters\n- Format: \"[Duration] as [Job Title] at [Company] - [Key Responsibilities]\"\n\n**Example Experience Format:**\n\"3 years as Automation Technician at TECNO AUTO GLASS - Installation and troubleshooting of electrical systems; 1 year as Electrical Technician at MULTICON ENGINEERS LTD - PLC programming and HMI configuration; 1 year as Maintenance Engineer at ACCRESCENT ENGINEERING PVT LTD - VFD installation and motor control systems\"\n\nEXTRACTION GUIDELINES:\n- Pay attention to layout and visual organization\n- Scan for any information in margins or headers\n- Look for structured sections and keywords\n- Extract information from any format or layout\n- Extract personal information (name, contact details, address)\n- Find education details from education/qualification sections\n- Identify work experience from employment history\n- Search for passport/CNIC numbers in personal details\n- Pay attention to dates in various formats throughout the document\n- Extract phone numbers and email addresses from contact information\n- Notice any certifications or licenses mentioned\n- Look for languages mentioned in skills or personal sections\n- Be thorough in extracting all available information\n- If you see partial information, extract what you can\n\nSKILLS EXTRACTION - COMPREHENSIVE APPROACH:\n\n**Primary Skills Sources (Check ALL of these):**\n- Dedicated \"Skills\" section\n- \"Technical Skills\" or \"Core Competencies\" sections\n- \"Key Skills\" or \"Professional Skills\" areas\n- \"Software\" or \"Tools\" sections\n- \"Technologies\" or \"Platforms\" sections\n- Skills mentioned within job descriptions/experience\n- Skills listed in project descriptions\n- Certifications that imply skills (e.g., \"Microsoft Office Certified\" = MS Office skills)\n- Education-related skills (programming languages from CS degree, etc.)\n\n**Skills Categories to Extract:**\n\n1. **Technical/Hard Skills:**\n   - Programming languages (Python, Java, C++, JavaScript, etc.)\n   - Software applications (MS Office, AutoCAD, Photoshop, SAP, etc.)\n   - Operating systems (Windows, Linux, macOS, etc.)\n   - Databases (MySQL, Oracle, PostgreSQL, etc.)\n   - Frameworks and libraries (React, Angular, Django, etc.)\n   - Tools and platforms (Git, Docker, AWS, Azure, etc.)\n   - Industry-specific tools (PLC programming, MATLAB, SolidWorks, etc.)\n\n2. **Professional/Soft Skills:**\n   - Communication, Leadership, Project Management\n   - Problem-solving, Analytical thinking\n   - Team collaboration, Customer service\n   - Time management, Organization\n\n3. **Domain-Specific Skills:**\n   - Engineering skills (Electrical design, Circuit analysis, etc.)\n   - Finance skills (Financial analysis, Budgeting, etc.)\n   - Marketing skills (Digital marketing, SEO, etc.)\n   - Medical skills (Patient care, Medical procedures, etc.)\n\n4. **Language Skills:**\n   - Spoken languages (separate from programming languages)\n   - Language proficiency levels if mentioned\n\n**Skills Extraction Rules:**\n- Extract ALL skills mentioned, even if briefly\n- Include skills from experience descriptions (e.g., \"Managed team of 10\" = Leadership, Team Management)\n- Look for skills in bullet points, paragraphs, and lists\n- Extract skills from project descriptions\n- Include skills implied by job titles or responsibilities\n- Separate technical skills from soft skills when possible\n- Include skill variations (e.g., \"MS Word\" and \"Microsoft Word\" as \"Microsoft Word\")\n- Don't miss skills mentioned in context (e.g., \"Experienced in Python programming\")\n\n**Skill Formatting:**\n- Combine into a comprehensive skills string\n- Separate multiple skills with commas\n- Use standard names (e.g., \"Microsoft Excel\" not \"Excel\", \"Python\" not \"python\")\n- Include skill levels if mentioned (e.g., \"Advanced Excel\", \"Intermediate Python\")\n\nIMPORTANT: Your response must be valid JSON that can be parsed. Do not include any explanations, comments, or markdown formatting. Return only the raw JSON object. Your response must start with '{' and end with '}'.",
         "messages": {
           "messageValues": [
             {
@@ -760,10 +780,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        3296,
-        416
+        -4544,
+        544
       ],
-      "id": "1679a352-bb82-45f8-907a-4d777da29fa1",
+      "id": "a617c1f8-7abe-48da-a32b-5303508462f0",
       "name": "Resume Parser"
     },
     {
@@ -821,10 +841,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        6144,
-        224
+        -1488,
+        352
       ],
-      "id": "d345dbe2-7161-411a-bc4b-063c4dfc0806",
+      "id": "168a1998-bfaa-4f16-b504-812475485904",
       "name": "Designation Check Switch"
     },
     {
@@ -834,10 +854,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        352,
-        784
+        -7488,
+        928
       ],
-      "id": "f127cc4a-8b4d-4f5d-aca4-c642f7573c70",
+      "id": "644bf904-abca-4210-b47b-d8323e32dd71",
       "name": "Post Designation Creation"
     },
     {
@@ -847,10 +867,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        576,
-        784
+        -7264,
+        928
       ],
-      "id": "e4494c0f-f8f4-49e5-90f9-da81d67ae98d",
+      "id": "9b1ccbe0-f312-4409-b286-7e0751572c32",
       "name": "Designation Verification"
     },
     {
@@ -858,10 +878,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        6592,
-        224
+        -1040,
+        352
       ],
-      "id": "06b8c0c2-f00e-4b5e-93d6-e679f1765436",
+      "id": "35d06f7a-a587-4e39-bbc8-8d106157a45c",
       "name": "Final Merge"
     },
     {
@@ -871,10 +891,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6816,
-        224
+        -800,
+        320
       ],
-      "id": "3e078ad5-4280-4341-8e16-3eb550aec1c8",
+      "id": "d53ff2de-8134-45ce-97d3-c0ba28ac4501",
       "name": "Process Experience Data"
     },
     {
@@ -890,10 +910,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3376,
-        672
+        -4464,
+        816
       ],
-      "id": "4c114151-c93f-404b-9436-a7452b4ea314",
+      "id": "4351e840-b65f-44ff-9bf4-5c3dffc02d5d",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -915,10 +935,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        5200,
-        192
+        -2512,
+        496
       ],
-      "id": "d3e6a617-490c-4757-988e-6655d1050fbd",
+      "id": "089df79f-5760-4357-b30b-0a6b83e98ded",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
@@ -942,10 +962,10 @@
       "type": "n8n-nodes-base.erpNext",
       "typeVersion": 1,
       "position": [
-        6368,
-        288
+        -1264,
+        416
       ],
-      "id": "674f2fc2-74f4-4fa2-9fd7-4d7e693adb5c",
+      "id": "f1b105ae-77c9-4cd9-a24b-471c8ec15a82",
       "name": "Create a document1",
       "credentials": {
         "erpNextApi": {
@@ -962,10 +982,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -96,
-        784
+        -7936,
+        928
       ],
-      "id": "3c91ffef-7bb9-43d3-a8bb-e3bc6fbb3ae3",
+      "id": "b84bc14e-1cc2-4f16-8a06-e28732251435",
       "name": "Pre-Designation Check"
     },
     {
@@ -1024,10 +1044,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        128,
-        784
+        -7712,
+        928
       ],
-      "id": "9269a621-617d-4a06-bbba-9680f946826e",
+      "id": "29a05329-cc8f-4281-b585-7a114a558ba0",
       "name": "Skip Creation Switch"
     },
     {
@@ -1035,10 +1055,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1952,
-        272
+        -5888,
+        400
       ],
-      "id": "89b1413a-302a-4824-b3a4-2a92b3252e28",
+      "id": "70fe7602-35e6-4903-94d7-37d8dff4a22c",
       "name": "Merge2"
     },
     {
@@ -1048,10 +1068,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2176,
-        272
+        -5664,
+        400
       ],
-      "id": "919fe753-d811-4759-a36a-6b979ca02b12",
+      "id": "e905e026-84ef-4c1a-9111-a79443c2c870",
       "name": "Combine Data1"
     },
     {
@@ -1078,13 +1098,13 @@
           }
         }
       },
-      "id": "5818746c-530e-47c9-8b20-be0428744089",
+      "id": "9417f434-d484-4ee2-b5ee-29b941f01d11",
       "name": "Extract Images from PDF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        2400,
-        272
+        -5440,
+        400
       ]
     },
     {
@@ -1094,10 +1114,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2624,
-        272
+        -5216,
+        400
       ],
-      "id": "51beb6ad-b1e4-4274-9511-0a9b08ca4493",
+      "id": "449bb904-256f-44ac-b01d-9f586184c2bd",
       "name": "Prepare for Vision Analysis"
     },
     {
@@ -1132,10 +1152,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        2848,
-        272
+        -4992,
+        400
       ],
-      "id": "f29c8d21-2d45-424a-b4bf-55920d43c4ab",
+      "id": "83106923-21d4-49b3-9684-1fe09437edd6",
       "name": "Image Extraction Check"
     },
     {
@@ -1155,13 +1175,13 @@
         },
         "options": {}
       },
-      "id": "75a67551-c70d-484b-8e31-a358033088dd",
+      "id": "c5e841e8-1a5b-4165-a695-5f889b6268b6",
       "name": "Extract Text Fallback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        2624,
-        512
+        -5216,
+        640
       ]
     },
     {
@@ -1171,10 +1191,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2848,
-        512
+        -4992,
+        640
       ],
-      "id": "1e38db4a-3c94-4702-8cdf-a422cd6d8c66",
+      "id": "6a71ef10-fb2d-4222-b61f-012022861c07",
       "name": "Prepare Text Analysis"
     },
     {
@@ -1182,10 +1202,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3072,
-        416
+        -4768,
+        544
       ],
-      "id": "8f060eba-f9a3-4b3b-8a7c-77ffa4026ba4",
+      "id": "3aab7a69-7d74-4150-907b-28cb8b8fce84",
       "name": "Merge Processing Routes"
     },
     {
@@ -1196,10 +1216,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -96,
-        480
+        -8240,
+        592
       ],
-      "id": "0c7a606a-73dd-4460-ba55-4d50c5bb5113",
+      "id": "3c2f9d12-d4f1-4cd5-b4f9-cf713519f778",
       "name": "Webhook",
       "webhookId": "df313a6d-b069-4028-b4cb-d49ae75b69e9"
     },
@@ -1222,27 +1242,27 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -96,
-        -160
+        -8288,
+        -64
       ],
-      "id": "428152a8-61a6-4a9a-8207-81be04bd14c0",
+      "id": "562662da-d3b5-43f7-8c72-7541ea1e5e5d",
       "name": "On form submission",
       "webhookId": "e5dee929-3e06-407f-aac1-3a32bf6a505e"
     },
     {
       "parameters": {
         "mode": "combine",
-        "combineBy": "combineAll",
+        "combineBy": "combineByPosition",
         "options": {}
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        7552,
-        240
+        -2752,
+        96
       ],
-      "id": "10d2b6eb-52f9-457f-bdd5-7a01a23f8cad",
-      "name": "Merge Job Applicant and Experience"
+      "id": "563e63de-0abb-4ecd-afd3-a569fd50b9aa",
+      "name": "Merge4"
     }
   ],
   "connections": {
@@ -1355,29 +1375,35 @@
         ]
       ]
     },
-    "Create a document": {
-      "main": [
-        []
-      ]
-    },
-    "Split Experience Data": {
+    "Split Experience and Education Data": {
       "main": [
         [
           {
-            "node": "Collect Experience Data",
+            "node": "Collect Experience and Education Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Collect Experience Data": {
+    "Collect Experience and Education Data": {
       "main": [
         [
           {
-            "node": "Merge Job Applicant and Experience",
+            "node": "Merge Job Applicant Experience and Education",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Job Applicant Experience and Education": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1416,6 +1442,11 @@
             "node": "Merge3",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -1497,25 +1528,25 @@
         ],
         [
           {
-            "node": "AI Designation Assigner",
+            "node": "Merge4",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Designation Assigner": {
+    "AI New Designation Creator": {
       "main": [
         [
           {
-            "node": "Process AI Designation",
+            "node": "Process New AI Designation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process AI Designation": {
+    "Process New AI Designation": {
       "main": [
         [
           {
@@ -1603,12 +1634,12 @@
       "main": [
         [
           {
-            "node": "Split Experience Data",
+            "node": "Merge Job Applicant Experience and Education",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Merge Job Applicant and Experience",
+            "node": "Split Experience and Education Data",
             "type": "main",
             "index": 0
           }
@@ -1635,7 +1666,7 @@
             "index": 0
           },
           {
-            "node": "AI Designation Assigner",
+            "node": "AI New Designation Creator",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -1815,11 +1846,11 @@
         ]
       ]
     },
-    "Merge Job Applicant and Experience": {
+    "Merge4": {
       "main": [
         [
           {
-            "node": "Create a document",
+            "node": "AI New Designation Creator",
             "type": "main",
             "index": 0
           }
