@@ -8,7 +8,7 @@ import tempfile
 from datetime import datetime
 import logging
 import subprocess
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path #type:ignore
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -318,7 +318,7 @@ async def extract_text_from_pdf(background_tasks: BackgroundTasks, file: UploadF
                 extraction_method = "pymupdf_fast"
             else:
                 # Fallback to PyPDF2
-                import PyPDF2
+                import PyPDF2  #type:ignore
                 with open(temp_pdf_path, 'rb') as pdf_file:
                     pdf_reader = PyPDF2.PdfReader(pdf_file)
                     text_content = ""

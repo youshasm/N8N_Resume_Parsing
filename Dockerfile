@@ -26,8 +26,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY .env.docker .env
 
-# Create necessary directories
-RUN mkdir -p documents/uploads documents/temp documents/processed logs
 
 # Expose port
 EXPOSE 8000
