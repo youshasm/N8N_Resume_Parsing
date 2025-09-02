@@ -2,7 +2,7 @@
 
 ## Project Overview
 **Islamic Manpower Promoters (IMP)** - A practical, n8n-powered document processing system that automates 90% of your recruitment document handling while keeping human oversight for quality assurance.
-
+![alt text](image-1.png)
 ### Business Challenge
 - **Unstructured Data**: No standardized CV formats from applicants
 - **Poor Quality Mobile Photos**: Blurry passport scans, tilted certificates

@@ -11,7 +11,6 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - imp_postgres_data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"  # Different port to avoid conflict with Supabase
     networks:
@@ -41,10 +40,6 @@ services:
       - HF_HOME=/app/models
       - DISABLE_AI_ON_STARTUP=true  # Fast startup mode
       - DATABASE_URL=postgresql://imp_admin:IMP_2025_Secure_Pass_123!@imp-postgres:5432/imp_document_system
-    volumes:
-      - ./documents:/app/documents
-      - ./logs:/app/logs
-      #- ./models:/app/models  # Model cache (optional, safe to keep for HuggingFace/transformers if needed)
     ports:
       - "8000:8000"
     networks:
@@ -95,8 +90,6 @@ services:
       - "5678:5678"
     volumes:
       - imp_n8n_data:/home/node/.n8n
-      - ./n8n/workflows:/home/node/.n8n/workflows
-      - ./documents:/documents
     networks:
       - imp-network
     depends_on:
